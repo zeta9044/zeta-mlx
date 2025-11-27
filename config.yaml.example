@@ -12,13 +12,13 @@ models:
   available:
     qwen3-8b:
       path: mlx-community/Qwen3-8B-4bit
-      context_length: 8192
+      context_length: 32768
       quantization: 4bit
       description: "Qwen3 8B - 범용 대화"
 
     qwen3-4b:
       path: mlx-community/Qwen3-4B-4bit
-      context_length: 8192
+      context_length: 32768
       quantization: 4bit
       description: "Qwen3 4B - 경량 빠른 응답"
 

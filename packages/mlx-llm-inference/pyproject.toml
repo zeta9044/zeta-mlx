@@ -8,8 +8,8 @@ packages = [{include = "mlx_llm_inference", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
 mlx-llm-core = {path = "../mlx-llm-core", develop = true}
-mlx = "^0.21"
-mlx-lm = "^0.21"
+mlx = "^0.30"
+mlx-lm = "^0.28"
 
 [build-system]
 requires = ["poetry-core"]

@@ -9,7 +9,7 @@ packages = [{include = "mlx_llm_langchain", from = "src"}]
 python = "^3.10,<3.13"
 mlx-llm-core = {path = "../mlx-llm-core", develop = true}
 mlx-llm-inference = {path = "../mlx-llm-inference", develop = true}
-langchain-core = "^0.3"
+langchain-core = "^1.1"
 
 [build-system]
 requires = ["poetry-core"]

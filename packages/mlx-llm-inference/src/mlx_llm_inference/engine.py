@@ -3,7 +3,7 @@ from typing import Iterator, Callable
 
 from mlx_llm_core import (
     Result, Success, Failure, Railway,
-    Message, GenerationParams, InferenceResponse,
+    Message, GenerationParams, InferenceResponse, ChatRequest,
     GenerationError, NonEmptyList,
     check_token_limit,
 )
@@ -28,16 +28,20 @@ TemplateFn = Callable[[list[Message]], str]
 def create_mlx_generate(bundle: ModelBundle) -> GenerateFn:
     """MLX generate 함수 생성"""
     from mlx_lm import generate
+    from mlx_lm.sample_utils import make_sampler
 
     def mlx_generate(prompt: str, params: GenerationParams) -> Result[str, GenerationError]:
         try:
+            sampler = make_sampler(
+                temp=params.temperature.value,
+                top_p=params.top_p.value,
+            )
             response = generate(
                 bundle.model,
                 bundle.tokenizer,
                 prompt=prompt,
                 max_tokens=params.max_tokens.value,
-                temp=params.temperature.value,
-                top_p=params.top_p.value,
+                sampler=sampler,
                 verbose=False,
             )
             return Success(response)
@@ -107,8 +111,11 @@ class InferenceEngine:
     MLX 모델을 로드하고 추론 워크플로우를 제공합니다.
     """
 
-    def __init__(self, model_name: str, max_context: int = 8192):
-        self._bundle = load_model(model_name)
+    def __init__(self, model_or_bundle: str | ModelBundle, max_context: int = 8192):
+        if isinstance(model_or_bundle, str):
+            self._bundle = load_model(model_or_bundle)
+        else:
+            self._bundle = model_or_bundle
         self._max_context = max_context
 
         # 의존성 생성
@@ -119,11 +126,19 @@ class InferenceEngine:
 
     def generate(
         self,
-        messages: NonEmptyList[Message],
-        params: GenerationParams,
+        request_or_messages: ChatRequest | NonEmptyList[Message],
+        params: GenerationParams | None = None,
     ) -> Result[InferenceResponse, GenerationError]:
         """동기 생성"""
-        prompt = self._apply_template_fn(messages.to_list())
+        if isinstance(request_or_messages, ChatRequest):
+            messages = request_or_messages.messages
+            params = request_or_messages.params
+        else:
+            messages = request_or_messages.to_list()
+            if params is None:
+                params = GenerationParams.default()
+
+        prompt = self._apply_template_fn(messages if isinstance(messages, list) else messages.to_list())
 
         # 토큰 검사
         prompt_tokens = self._count_tokens_fn(prompt)
@@ -155,11 +170,19 @@ class InferenceEngine:
 
     def stream(
         self,
-        messages: NonEmptyList[Message],
-        params: GenerationParams,
+        request_or_messages: ChatRequest | NonEmptyList[Message],
+        params: GenerationParams | None = None,
     ) -> Iterator[str]:
         """스트리밍 생성"""
-        prompt = self._apply_template_fn(messages.to_list())
+        if isinstance(request_or_messages, ChatRequest):
+            messages = request_or_messages.messages
+            params = request_or_messages.params
+        else:
+            messages = request_or_messages.to_list()
+            if params is None:
+                params = GenerationParams.default()
+
+        prompt = self._apply_template_fn(messages if isinstance(messages, list) else messages.to_list())
         yield from self._stream_fn(prompt, params)
 
     def count_tokens(self, text: str) -> int:

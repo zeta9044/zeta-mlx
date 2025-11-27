@@ -10,7 +10,7 @@ python = "^3.10,<3.13"
 mlx-llm-core = {path = "../mlx-llm-core", develop = true}
 mlx-llm-inference = {path = "../mlx-llm-inference", develop = true}
 mlx-llm-api = {path = "../mlx-llm-api", develop = true}
-typer = {extras = ["all"], version = "^0.12"}
+typer = {extras = ["all"], version = "^0.16"}
 rich = "^13.7"
 
 [tool.poetry.scripts]

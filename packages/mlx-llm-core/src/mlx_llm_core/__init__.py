@@ -7,7 +7,7 @@ from mlx_llm_core.types import (
     Message, GenerationParams,
     ToolDefinition, ToolCall,
     NonEmptyList,
-    InferenceRequest, InferenceResponse, TokenUsage,
+    ChatRequest, InferenceRequest, InferenceResponse, TokenUsage,
 )
 from mlx_llm_core.result import (
     Result, Success, Failure,
@@ -42,7 +42,7 @@ __all__ = [
     "Message", "GenerationParams",
     "ToolDefinition", "ToolCall",
     "NonEmptyList",
-    "InferenceRequest", "InferenceResponse", "TokenUsage",
+    "ChatRequest", "InferenceRequest", "InferenceResponse", "TokenUsage",
     # Result
     "Result", "Success", "Failure", "Railway",
     "map_result", "bind", "map_error", "tee",

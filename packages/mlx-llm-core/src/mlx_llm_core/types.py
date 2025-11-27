@@ -28,6 +28,14 @@ class Temperature:
     def default(cls) -> Self:
         return cls(0.7)
 
+    @classmethod
+    def create(cls, value: float) -> 'Result[Temperature, str]':
+        """검증 후 생성"""
+        from mlx_llm_core.result import Success, Failure
+        if not 0.0 <= value <= 2.0:
+            return Failure(f"Temperature must be 0.0-2.0, got {value}")
+        return Success(cls(value))
+
 
 @dataclass(frozen=True)
 class TopP:
@@ -55,6 +63,14 @@ class MaxTokens:
     @classmethod
     def default(cls) -> Self:
         return cls(2048)
+
+    @classmethod
+    def create(cls, value: int) -> 'Result[MaxTokens, str]':
+        """검증 후 생성"""
+        from mlx_llm_core.result import Success, Failure
+        if not 1 <= value <= 32768:
+            return Failure(f"MaxTokens must be 1-32768, got {value}")
+        return Success(cls(value))
 
 
 # ============================================================
@@ -134,6 +150,15 @@ class NonEmptyList(Generic[T]):
 # ============================================================
 # Request/Response Types
 # ============================================================
+
+@dataclass(frozen=True)
+class ChatRequest:
+    """간단한 채팅 요청 (CLI/직접 사용용)"""
+    model: str
+    messages: list[Message]
+    params: GenerationParams
+    stream: bool = False
+
 
 @dataclass(frozen=True)
 class InferenceRequest:

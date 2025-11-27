@@ -35,8 +35,8 @@ def interactive(
     ),
 ) -> None:
     """대화형 채팅 시작"""
-    from mlx_llm_core import Message, GenerationParams, ChatRequest, Temperature, TopP, MaxTokens
-    from mlx_llm_inference import load_model_safe, InferenceEngine, Failure
+    from mlx_llm_core import Message, GenerationParams, ChatRequest, Temperature, TopP, MaxTokens, Failure
+    from mlx_llm_inference import load_model_safe, InferenceEngine
 
     console.print(f"[bold blue]Loading model: {model_name}...[/bold blue]")
 
@@ -68,6 +68,7 @@ def interactive(
     params = GenerationParams(
         temperature=temp_result.value,
         max_tokens=max_tokens_result.value,
+        top_p=TopP.default(),
     )
 
     while True:
@@ -130,7 +131,7 @@ def once(
     ),
 ) -> None:
     """단일 프롬프트로 응답 생성"""
-    from mlx_llm_core import Message, GenerationParams, ChatRequest, Temperature, MaxTokens, Failure
+    from mlx_llm_core import Message, GenerationParams, ChatRequest, Temperature, TopP, MaxTokens, Failure
     from mlx_llm_inference import load_model_safe, InferenceEngine
 
     console.print(f"[dim]Loading model: {model_name}...[/dim]")
@@ -152,6 +153,7 @@ def once(
     params = GenerationParams(
         temperature=temp_result.value,
         max_tokens=max_tokens_result.value,
+        top_p=TopP.default(),
     )
 
     messages = [Message(role="user", content=prompt)]
@@ -167,7 +169,7 @@ def once(
         console.print(f"[bold red]Error: {result.error}[/bold red]")
         raise typer.Exit(1)
 
-    console.print(Markdown(result.value.text))
+    console.print(Markdown(result.value.content))
 
 
 @app.callback(invoke_without_command=True)

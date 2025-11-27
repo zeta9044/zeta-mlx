@@ -2,7 +2,6 @@
 from dataclasses import dataclass
 from typing import Any
 from functools import lru_cache
-import sys
 
 from mlx_llm_core import Result, Success, Failure, ModelNotFoundError
 
@@ -15,23 +14,14 @@ class ModelBundle:
     tokenizer: Any  # Tokenizer
 
 
-def setup_custom_models() -> None:
-    """커스텀 모델 등록"""
-    from mlx_llm_inference.custom_models import qwen3
-
-    # MLX-LM이 찾을 수 있도록 등록
-    sys.modules['mlx_lm.models.qwen3'] = qwen3
-
-
 @lru_cache(maxsize=4)
 def load_model(model_name: str) -> ModelBundle:
     """
     모델 로드 (캐시됨)
 
     최대 4개 모델까지 메모리에 유지합니다.
+    mlx_lm 0.28+에서 Qwen3 네이티브 지원.
     """
-    setup_custom_models()
-
     from mlx_lm import load
 
     print(f"Loading model: {model_name}")
@@ -50,7 +40,8 @@ def load_model_safe(model_name: str) -> Result[ModelBundle, ModelNotFoundError]:
     try:
         bundle = load_model(model_name)
         return Success(bundle)
-    except Exception:
+    except Exception as e:
+        print(f"Load error: {e}")
         return Failure(ModelNotFoundError(model=model_name))
 
 

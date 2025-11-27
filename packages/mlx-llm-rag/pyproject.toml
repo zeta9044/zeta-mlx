@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "mlx-llm-rag"
+version = "0.1.0"
+description = "RAG (Retrieval-Augmented Generation) for MLX LLM"
+authors = ["ZetaLab <zeta9044@gmail.com>"]
+packages = [{include = "mlx_llm_rag", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.13"
+mlx-llm-core = {path = "../mlx-llm-core", develop = true}
+mlx-llm-inference = {path = "../mlx-llm-inference", develop = true}
+numpy = "^1.26"
+sentence-transformers = {version = "^3.0", optional = true}
+
+[tool.poetry.extras]
+embeddings = ["sentence-transformers"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

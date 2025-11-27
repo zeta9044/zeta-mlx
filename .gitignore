@@ -55,6 +55,9 @@ tensorboard/
 .env.local
 .env.*.local
 
+# Local config (use config.yaml.example as template)
+config.yaml
+
 # MLX specific
 .mlx/
 

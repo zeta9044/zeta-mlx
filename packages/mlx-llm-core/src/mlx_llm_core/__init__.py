@@ -30,6 +30,7 @@ from mlx_llm_core.pipeline import (
 )
 from mlx_llm_core.config import (
     ServerConfig, ModelDefinition, ModelsConfig, InferenceConfig, AppConfig,
+    EmbeddingConfig, RAGConfig,
     load_yaml, parse_config, load_config, merge_config,
 )
 
@@ -57,5 +58,6 @@ __all__ = [
     "pipe", "compose", "identity", "const", "curry2", "flip",
     # Config
     "ServerConfig", "ModelDefinition", "ModelsConfig", "InferenceConfig", "AppConfig",
+    "EmbeddingConfig", "RAGConfig",
     "load_yaml", "parse_config", "load_config", "merge_config",
 ]

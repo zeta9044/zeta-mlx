@@ -1,9 +1,12 @@
 """임베딩 생성 (I/O 경계)"""
-from typing import Sequence, Callable
+from typing import Sequence, Callable, TYPE_CHECKING
 import numpy as np
 from numpy.typing import NDArray
 from mlx_llm_core import Result, Success, Failure, ModelLoadError
 from mlx_llm_rag.types import EmbeddingFn
+
+if TYPE_CHECKING:
+    from mlx_llm_core import EmbeddingConfig
 
 
 def create_simple_embedding_fn(dimension: int = 384) -> EmbeddingFn:
@@ -84,3 +87,33 @@ def cosine_similarity_batch(
     query_norm = query / np.linalg.norm(query)
     vectors_norm = vectors / np.linalg.norm(vectors, axis=1, keepdims=True)
     return np.dot(vectors_norm, query_norm)
+
+
+# ============================================================
+# Config 기반 팩토리
+# ============================================================
+
+def create_embedding_fn_from_config(
+    config: "EmbeddingConfig",
+) -> Result[EmbeddingFn, ModelLoadError]:
+    """
+    EmbeddingConfig에서 임베딩 함수 생성
+
+    config.yaml 예시:
+        rag:
+          embedding:
+            provider: sentence-transformers
+            model_name: all-MiniLM-L6-v2
+            dimension: 384
+    """
+    if config.provider == "simple":
+        return Success(create_simple_embedding_fn(config.dimension))
+
+    elif config.provider == "sentence-transformers":
+        return create_sentence_transformer_fn(config.model_name)
+
+    else:
+        return Failure(ModelLoadError(
+            model_name=config.provider,
+            reason=f"Unknown embedding provider: {config.provider}",
+        ))

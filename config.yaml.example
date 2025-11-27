@@ -39,3 +39,30 @@ inference:
   temperature: 0.7
   top_p: 0.9
   stop_sequences: []
+
+# RAG (Retrieval-Augmented Generation) 설정
+rag:
+  embedding:
+    # 임베딩 제공자: simple (테스트용), sentence-transformers (프로덕션)
+    provider: sentence-transformers
+
+    # sentence-transformers 모델 (provider가 sentence-transformers일 때)
+    # 추천 모델:
+    #   - all-MiniLM-L6-v2: 빠르고 가벼움 (384차원)
+    #   - all-mpnet-base-v2: 높은 품질 (768차원)
+    #   - paraphrase-multilingual-MiniLM-L12-v2: 다국어 지원
+    model_name: all-MiniLM-L6-v2
+
+    # 임베딩 차원 (provider가 simple일 때만 사용)
+    dimension: 384
+
+    # 배치 크기
+    batch_size: 32
+
+  # 검색 설정
+  top_k: 3              # 검색 결과 수
+  min_score: 0.0        # 최소 유사도 점수
+
+  # 문서 청킹 설정
+  chunk_size: 500       # 청크 크기 (문자)
+  chunk_overlap: 50     # 청크 중복 (문자)

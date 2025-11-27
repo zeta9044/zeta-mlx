@@ -62,6 +62,43 @@ class ModelsConfig(BaseModel):
 
 
 # ============================================================
+# 임베딩 설정 (RAG용)
+# ============================================================
+
+class EmbeddingConfig(BaseModel):
+    """임베딩 모델 설정"""
+    provider: Literal["simple", "sentence-transformers"] = "sentence-transformers"
+    model_name: str = "all-MiniLM-L6-v2"
+    dimension: int = Field(default=384, ge=64, le=4096)
+    batch_size: int = Field(default=32, ge=1, le=256)
+
+    model_config = {"frozen": True}
+
+
+# ============================================================
+# RAG 설정
+# ============================================================
+
+class RAGConfig(BaseModel):
+    """RAG 파이프라인 설정"""
+    embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
+    top_k: int = Field(default=3, ge=1, le=20)
+    min_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    chunk_size: int = Field(default=500, ge=100, le=2000)
+    chunk_overlap: int = Field(default=50, ge=0, le=500)
+    system_template: str = """You are a helpful assistant. Use the following context to answer the question.
+
+Context:
+{context}
+
+Question: {question}
+
+Answer based on the context above. If the context doesn't contain relevant information, say so."""
+
+    model_config = {"frozen": True}
+
+
+# ============================================================
 # 추론 설정
 # ============================================================
 
@@ -84,6 +121,7 @@ class AppConfig(BaseModel):
     server: ServerConfig = Field(default_factory=ServerConfig)
     models: ModelsConfig = Field(default_factory=ModelsConfig)
     inference: InferenceConfig = Field(default_factory=InferenceConfig)
+    rag: RAGConfig = Field(default_factory=RAGConfig)
 
     model_config = {"frozen": True}
 

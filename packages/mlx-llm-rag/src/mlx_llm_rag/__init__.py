@@ -6,6 +6,7 @@ from mlx_llm_rag.types import (
 from mlx_llm_rag.embeddings import (
     create_simple_embedding_fn,
     create_sentence_transformer_fn,
+    create_embedding_fn_from_config,
     batch_embed,
     cosine_similarity,
     cosine_similarity_batch,
@@ -45,6 +46,7 @@ __all__ = [
     # Embeddings
     "create_simple_embedding_fn",
     "create_sentence_transformer_fn",
+    "create_embedding_fn_from_config",
     "batch_embed",
     "cosine_similarity",
     "cosine_similarity_batch",

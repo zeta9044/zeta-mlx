@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "mlx-llm-api"
+version = "0.1.0"
+description = "FastAPI server for MLX LLM"
+authors = ["ZetaLab <zeta9044@gmail.com>"]
+packages = [{include = "mlx_llm_api", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.13"
+mlx-llm-core = {path = "../mlx-llm-core", develop = true}
+mlx-llm-inference = {path = "../mlx-llm-inference", develop = true}
+fastapi = "^0.115"
+uvicorn = {extras = ["standard"], version = "^0.32"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

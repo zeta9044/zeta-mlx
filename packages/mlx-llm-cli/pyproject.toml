@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "mlx-llm-cli"
+version = "0.1.0"
+description = "CLI for MLX LLM Server"
+authors = ["ZetaLab <zeta9044@gmail.com>"]
+packages = [{include = "mlx_llm_cli", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.13"
+mlx-llm-core = {path = "../mlx-llm-core", develop = true}
+mlx-llm-inference = {path = "../mlx-llm-inference", develop = true}
+mlx-llm-api = {path = "../mlx-llm-api", develop = true}
+typer = {extras = ["all"], version = "^0.12"}
+rich = "^13.7"
+
+[tool.poetry.scripts]
+mlx-llm = "mlx_llm_cli:cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

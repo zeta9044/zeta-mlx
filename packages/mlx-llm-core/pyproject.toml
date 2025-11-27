@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "mlx-llm-core"
+version = "0.1.0"
+description = "Core types and pure functions for MLX LLM"
+authors = ["ZetaLab <zeta9044@gmail.com>"]
+packages = [{include = "mlx_llm_core", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.13"
+pydantic = "^2.9"
+pydantic-settings = "^2.6"
+pyyaml = "^6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -341,10 +341,10 @@ def result_to_status_code(result: Result) -> int:
                     return 500
 ```
 
-## routes/chat.py - Chat Completions 라우트
+## routes/chat.py - Chat Completions 라우트 (다중 모델)
 
 ```python
-"""Chat Completions 라우트"""
+"""Chat Completions 라우트 (다중 모델 지원)"""
 import uuid
 import time
 from typing import AsyncIterator
@@ -353,7 +353,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from mlx_llm_core import Success, Failure
-from mlx_llm_inference import InferenceEngine
+from mlx_llm_inference import ModelManager
 from mlx_llm_api.dto.requests import ChatRequestDTO
 from mlx_llm_api.dto.responses import (
     ChatResponseDTO, StreamResponseDTO, StreamChoiceDTO, DeltaDTO,
@@ -369,20 +369,28 @@ from mlx_llm_api.converters import (
 router = APIRouter(prefix="/v1", tags=["chat"])
 
 
-def get_engine() -> InferenceEngine:
-    """엔진 의존성 (실제로는 app.state에서)"""
+def get_model_manager() -> ModelManager:
+    """모델 관리자 의존성 (app.state에서)"""
     from mlx_llm_api.app import app
-    return app.state.engine
+    return app.state.model_manager
 
 
 @router.post("/chat/completions")
 async def chat_completions(request: ChatRequestDTO):
     """
-    OpenAI 호환 Chat Completions
+    OpenAI 호환 Chat Completions (다중 모델)
 
     POST /v1/chat/completions
+
+    model 필드:
+    - 빈 문자열 또는 생략: 기본 모델 사용
+    - 모델 별칭: "qwen3-8b", "qwen2.5-7b" 등
+    - HuggingFace 경로: "mlx-community/Qwen3-8B-4bit"
     """
-    engine = get_engine()
+    manager = get_model_manager()
+
+    # 모델 별칭 해석 (빈 문자열이면 기본 모델)
+    model_alias = manager.resolve_alias(request.model)
 
     # DTO → Domain 변환 (검증 포함)
     domain_result = chat_request_to_domain(request)
@@ -394,6 +402,18 @@ async def chat_completions(request: ChatRequestDTO):
                 detail=error_to_response_dto(err).model_dump(),
             )
         case Success(inference_request):
+            pass
+
+    # 모델 엔진 가져오기 (필요시 로드)
+    engine_result = manager.get_engine(model_alias)
+
+    match engine_result:
+        case Failure(err):
+            raise HTTPException(
+                status_code=404,
+                detail=error_to_response_dto(err).model_dump(),
+            )
+        case Success(engine):
             pass
 
     # 요청 ID 생성
@@ -498,47 +518,72 @@ async def _stream_response(
     yield "data: [DONE]\n\n"
 ```
 
-## app.py - FastAPI 앱
+## app.py - FastAPI 앱 (다중 모델)
 
 ```python
-"""FastAPI 애플리케이션"""
+"""FastAPI 애플리케이션 (다중 모델 지원)"""
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from mlx_llm_core import AppConfig
-from mlx_llm_inference import InferenceEngine
+from mlx_llm_core import AppConfig, load_config, Success, Failure
+from mlx_llm_inference import ModelManager, create_model_manager
 from mlx_llm_api.routes import chat, models, health
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """앱 라이프사이클"""
-    # Startup: 엔진 초기화
+    # Startup: 모델 관리자 초기화
     config: AppConfig = app.state.config
-    app.state.engine = InferenceEngine(
-        model_name=config.model.name,
-        max_context=config.model.context_length,
-    )
+
+    # 모델 관리자 생성
+    app.state.model_manager = create_model_manager(config.models)
+
+    # 기본 모델 미리 로드 (선택적)
+    preload_models = [config.models.default]
+    app.state.model_manager.preload(preload_models)
 
     yield
 
-    # Shutdown: 정리
-    app.state.engine = None
+    # Shutdown: 모든 모델 언로드
+    app.state.model_manager.unload_all()
 
 
-def create_app(config: AppConfig | None = None) -> FastAPI:
-    """앱 팩토리"""
+def create_app(
+    config: AppConfig | None = None,
+    config_path: str | Path | None = None,
+) -> FastAPI:
+    """
+    앱 팩토리
+
+    Args:
+        config: AppConfig 인스턴스 (직접 전달)
+        config_path: YAML 설정 파일 경로
+    """
+    # 설정 로드 (우선순위: config > config_path > 기본값)
+    if config is None:
+        if config_path:
+            config_result = load_config(config_path)
+            if isinstance(config_result, Failure):
+                raise ValueError(f"Failed to load config: {config_result.error}")
+            config = config_result.value
+        else:
+            # 기본 경로에서 자동 로드 시도
+            config_result = load_config()
+            config = config_result.value if isinstance(config_result, Success) else AppConfig()
+
     app = FastAPI(
         title="MLX LLM Server",
-        description="OpenAI-compatible LLM server for Apple Silicon",
+        description="OpenAI-compatible LLM server for Apple Silicon (Multi-Model)",
         version="0.1.0",
         lifespan=lifespan,
     )
 
     # 설정 저장
-    app.state.config = config or AppConfig()
+    app.state.config = config
 
     # CORS
     app.add_middleware(
@@ -556,8 +601,111 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     return app
 
 
-# 기본 앱 인스턴스
+def create_app_from_yaml(config_path: str | Path) -> FastAPI:
+    """YAML 설정 파일에서 앱 생성"""
+    return create_app(config_path=config_path)
+
+
+# 기본 앱 인스턴스 (기본 설정 또는 ./config.yaml)
 app = create_app()
+```
+
+## routes/models.py - 모델 목록 (다중 모델)
+
+```python
+"""모델 목록 라우트 (다중 모델 지원)"""
+import time
+from fastapi import APIRouter
+
+from mlx_llm_inference import ModelManager
+from mlx_llm_api.dto.responses import ModelsResponseDTO, ModelDTO
+
+
+router = APIRouter(prefix="/v1", tags=["models"])
+
+
+def get_model_manager() -> ModelManager:
+    """모델 관리자 의존성"""
+    from mlx_llm_api.app import app
+    return app.state.model_manager
+
+
+@router.get("/models", response_model=ModelsResponseDTO)
+async def list_models():
+    """
+    사용 가능한 모델 목록
+
+    GET /v1/models
+
+    config.yaml에 정의된 모든 모델을 반환합니다.
+    """
+    manager = get_model_manager()
+    created = int(time.time())
+
+    models = []
+    for alias in manager.list_available():
+        info = manager.get_model_info(alias)
+        if info:
+            models.append(ModelDTO(
+                id=alias,
+                created=created,
+                owned_by="mlx-llm",
+                # 추가 정보
+                object="model",
+            ))
+
+    return ModelsResponseDTO(data=models)
+
+
+@router.get("/models/loaded")
+async def list_loaded_models():
+    """
+    현재 메모리에 로드된 모델 목록
+
+    GET /v1/models/loaded
+
+    LRU 캐시에 있는 모델들을 반환합니다.
+    """
+    manager = get_model_manager()
+
+    return {
+        "loaded": manager.list_loaded(),
+        "max_loaded": manager._config.max_loaded,
+        "default": manager.default_alias,
+    }
+
+
+@router.post("/models/{model_alias}/load")
+async def load_model(model_alias: str):
+    """
+    모델 명시적 로드
+
+    POST /v1/models/{model_alias}/load
+
+    사용 전 미리 로드하여 첫 요청 지연을 줄입니다.
+    """
+    manager = get_model_manager()
+    result = manager.get_engine(model_alias)
+
+    if isinstance(result, Failure):
+        return {"success": False, "error": str(result.error)}
+
+    return {"success": True, "model": model_alias}
+
+
+@router.post("/models/{model_alias}/unload")
+async def unload_model(model_alias: str):
+    """
+    모델 명시적 언로드
+
+    POST /v1/models/{model_alias}/unload
+
+    메모리에서 모델을 제거합니다.
+    """
+    manager = get_model_manager()
+    success = manager.unload(model_alias)
+
+    return {"success": success, "model": model_alias}
 ```
 
 ## Public API (__init__.py)

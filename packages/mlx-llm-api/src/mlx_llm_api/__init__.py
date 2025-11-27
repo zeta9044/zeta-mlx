@@ -1,5 +1,9 @@
-"""MLX LLM API - FastAPI Server"""
-from mlx_llm_api.app import create_app, create_app_with_engine
+"""MLX LLM API - FastAPI Server (Multi-Model)"""
+from mlx_llm_api.app import (
+    create_app,
+    create_app_from_yaml,
+    create_app_with_manager,
+)
 from mlx_llm_api.dto import (
     ChatRequestDTO, MessageDTO,
     ChatResponseDTO, StreamResponseDTO,
@@ -22,7 +26,8 @@ __version__ = "0.1.0"
 __all__ = [
     # App factory
     "create_app",
-    "create_app_with_engine",
+    "create_app_from_yaml",
+    "create_app_with_manager",
     # Request DTOs
     "ChatRequestDTO",
     "MessageDTO",

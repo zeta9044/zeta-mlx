@@ -29,7 +29,8 @@ from mlx_llm_core.pipeline import (
     pipe, compose, identity, const, curry2, flip,
 )
 from mlx_llm_core.config import (
-    ServerConfig, ModelConfig, InferenceConfig, AppConfig,
+    ServerConfig, ModelDefinition, ModelsConfig, InferenceConfig, AppConfig,
+    load_yaml, parse_config, load_config, merge_config,
 )
 
 __version__ = "0.1.0"
@@ -55,5 +56,6 @@ __all__ = [
     # Pipeline
     "pipe", "compose", "identity", "const", "curry2", "flip",
     # Config
-    "ServerConfig", "ModelConfig", "InferenceConfig", "AppConfig",
+    "ServerConfig", "ModelDefinition", "ModelsConfig", "InferenceConfig", "AppConfig",
+    "load_yaml", "parse_config", "load_config", "merge_config",
 ]

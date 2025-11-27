@@ -557,50 +557,228 @@ def flip(f: Callable[[A, B], C]) -> Callable[[B, A], C]:
     return lambda b, a: f(a, b)
 ```
 
-## config.py - 설정 타입
+## config.py - 설정 타입 (YAML 지원)
 
 ```python
-"""설정 타입 (Pydantic)"""
+"""설정 타입 (Pydantic + YAML)"""
+from pathlib import Path
 from typing import Literal
 from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings
+import yaml
 
+from mlx_llm_core.result import Result, Success, Failure
+from mlx_llm_core.errors import ValidationError
+
+
+# ============================================================
+# 서버 설정
+# ============================================================
 
 class ServerConfig(BaseModel):
     """서버 설정"""
-    host: str = "127.0.0.1"
+    host: str = "0.0.0.0"
     port: int = Field(default=9044, ge=1, le=65535)
 
-    class Config:
-        frozen = True
+    model_config = {"frozen": True}
 
 
-class ModelConfig(BaseModel):
-    """모델 설정"""
-    name: str = "mlx-community/Qwen3-8B-4bit"
+# ============================================================
+# 모델 설정 (다중 모델 지원)
+# ============================================================
+
+class ModelDefinition(BaseModel):
+    """개별 모델 정의"""
+    path: str  # HuggingFace 경로
     context_length: int = Field(default=8192, ge=512)
+    quantization: str = "4bit"
+    description: str = ""
 
-    class Config:
-        frozen = True
+    model_config = {"frozen": True}
 
+
+class ModelsConfig(BaseModel):
+    """다중 모델 설정"""
+    default: str = "qwen3-8b"  # 기본 모델 별칭
+    max_loaded: int = Field(default=2, ge=1, le=8)  # 동시 로드 최대 수
+    available: dict[str, ModelDefinition] = Field(default_factory=lambda: {
+        "qwen3-8b": ModelDefinition(
+            path="mlx-community/Qwen3-8B-4bit",
+            context_length=8192,
+            description="Qwen3 8B (4-bit quantized)",
+        ),
+    })
+
+    model_config = {"frozen": True}
+
+    def get_model(self, alias: str) -> ModelDefinition | None:
+        """별칭으로 모델 정의 조회"""
+        return self.available.get(alias)
+
+    def get_default_model(self) -> ModelDefinition:
+        """기본 모델 정의 반환"""
+        return self.available[self.default]
+
+    def list_aliases(self) -> list[str]:
+        """사용 가능한 모델 별칭 목록"""
+        return list(self.available.keys())
+
+
+# ============================================================
+# 추론 설정
+# ============================================================
 
 class InferenceConfig(BaseModel):
-    """추론 설정"""
+    """추론 기본 설정"""
     max_tokens: int = Field(default=2048, ge=1, le=32768)
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     top_p: float = Field(default=0.9, ge=0.0, le=1.0)
+    stop_sequences: list[str] = Field(default_factory=list)
 
-    class Config:
-        frozen = True
+    model_config = {"frozen": True}
 
+
+# ============================================================
+# 전체 앱 설정
+# ============================================================
 
 class AppConfig(BaseModel):
-    """전체 설정"""
-    server: ServerConfig = ServerConfig()
-    model: ModelConfig = ModelConfig()
-    inference: InferenceConfig = InferenceConfig()
+    """전체 애플리케이션 설정"""
+    server: ServerConfig = Field(default_factory=ServerConfig)
+    models: ModelsConfig = Field(default_factory=ModelsConfig)
+    inference: InferenceConfig = Field(default_factory=InferenceConfig)
 
-    class Config:
-        frozen = True
+    model_config = {"frozen": True}
+
+
+# ============================================================
+# YAML 로더 (순수 함수)
+# ============================================================
+
+def load_yaml(path: Path) -> Result[dict, ValidationError]:
+    """YAML 파일 로드"""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+            return Success(data or {})
+    except FileNotFoundError:
+        return Failure(ValidationError(
+            field="config_path",
+            message=f"Config file not found: {path}",
+        ))
+    except yaml.YAMLError as e:
+        return Failure(ValidationError(
+            field="config_yaml",
+            message=f"Invalid YAML: {e}",
+        ))
+
+
+def parse_config(data: dict) -> Result[AppConfig, ValidationError]:
+    """딕셔너리를 AppConfig로 파싱"""
+    try:
+        config = AppConfig(**data)
+        return Success(config)
+    except Exception as e:
+        return Failure(ValidationError(
+            field="config",
+            message=str(e),
+        ))
+
+
+def load_config(path: Path | str | None = None) -> Result[AppConfig, ValidationError]:
+    """
+    설정 로드 (YAML + 환경변수 + 기본값)
+
+    우선순위: YAML < 환경변수 < 기본값
+    """
+    if path is None:
+        # 기본 경로들 탐색
+        default_paths = [
+            Path("config.yaml"),
+            Path("config.yml"),
+            Path.home() / ".config" / "mlx-llm" / "config.yaml",
+        ]
+        for p in default_paths:
+            if p.exists():
+                path = p
+                break
+
+    if path is None:
+        # 설정 파일 없으면 기본값 사용
+        return Success(AppConfig())
+
+    path = Path(path)
+
+    # YAML 로드 → 파싱
+    yaml_result = load_yaml(path)
+    if isinstance(yaml_result, Failure):
+        return yaml_result
+
+    return parse_config(yaml_result.value)
+
+
+def merge_config(base: AppConfig, overrides: dict) -> AppConfig:
+    """설정 병합 (CLI 인자 등)"""
+    data = base.model_dump()
+
+    # 중첩 딕셔너리 병합
+    def deep_merge(d1: dict, d2: dict) -> dict:
+        result = d1.copy()
+        for k, v in d2.items():
+            if k in result and isinstance(result[k], dict) and isinstance(v, dict):
+                result[k] = deep_merge(result[k], v)
+            else:
+                result[k] = v
+        return result
+
+    merged = deep_merge(data, overrides)
+    return AppConfig(**merged)
+```
+
+## config.yaml 예시
+
+```yaml
+# MLX LLM Server 설정 파일
+# 위치: ./config.yaml 또는 ~/.config/mlx-llm/config.yaml
+
+server:
+  host: 0.0.0.0
+  port: 9044
+
+models:
+  default: qwen3-8b  # 기본 모델 별칭
+  max_loaded: 2       # 동시 로드 최대 모델 수
+
+  available:
+    qwen3-8b:
+      path: mlx-community/Qwen3-8B-4bit
+      context_length: 8192
+      quantization: 4bit
+      description: "Qwen3 8B - 범용 대화"
+
+    qwen3-4b:
+      path: mlx-community/Qwen3-4B-4bit
+      context_length: 8192
+      quantization: 4bit
+      description: "Qwen3 4B - 경량 빠른 응답"
+
+    qwen2.5-7b:
+      path: mlx-community/Qwen2.5-7B-Instruct-4bit
+      context_length: 32768
+      quantization: 4bit
+      description: "Qwen2.5 7B - 긴 컨텍스트"
+
+    llama3.2-3b:
+      path: mlx-community/Llama-3.2-3B-Instruct-4bit
+      context_length: 8192
+      quantization: 4bit
+      description: "Llama 3.2 3B - 경량"
+
+inference:
+  max_tokens: 2048
+  temperature: 0.7
+  top_p: 0.9
+  stop_sequences: []
 ```
 
 ## Public API (__init__.py)
@@ -637,7 +815,8 @@ from mlx_llm_core.pipeline import (
     pipe, compose, identity, const, curry2, flip,
 )
 from mlx_llm_core.config import (
-    ServerConfig, ModelConfig, InferenceConfig, AppConfig,
+    ServerConfig, ModelDefinition, ModelsConfig, InferenceConfig, AppConfig,
+    load_yaml, parse_config, load_config, merge_config,
 )
 
 __version__ = "0.1.0"
@@ -663,6 +842,7 @@ __all__ = [
     # Pipeline
     "pipe", "compose", "identity", "const", "curry2", "flip",
     # Config
-    "ServerConfig", "ModelConfig", "InferenceConfig", "AppConfig",
+    "ServerConfig", "ModelDefinition", "ModelsConfig", "InferenceConfig", "AppConfig",
+    "load_yaml", "parse_config", "load_config", "merge_config",
 ]
 ```

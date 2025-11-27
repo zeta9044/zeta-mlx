@@ -16,8 +16,8 @@ def mlx_stream_generator(
     MLX 스트리밍 Generator
 
     mlx_lm.stream_generate를 사용하여 텍스트를 스트리밍합니다.
+    각 response.text는 이미 개별 청크이므로 직접 yield합니다.
     """
-    prev_text = ""
     sampler = make_sampler(temp=temperature, top_p=top_p)
 
     for response in stream_generate(
@@ -27,13 +27,8 @@ def mlx_stream_generator(
         max_tokens=max_tokens,
         sampler=sampler,
     ):
-        # 새로운 텍스트만 추출
-        current_text = response.text
-        new_text = current_text[len(prev_text):]
-
-        if new_text:
-            yield new_text
-            prev_text = current_text
+        if response.text:
+            yield response.text
 
 
 def chunk_stream(

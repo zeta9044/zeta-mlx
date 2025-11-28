@@ -29,7 +29,7 @@ def list_models() -> None:
         table.add_row(model_id, desc, size, usage)
 
     console.print(table)
-    console.print("\n[dim]사용법: zeta-mlx serve start -m <model_id>[/dim]")
+    console.print("\n[dim]사용법: zeta-mlx llm start -m <model_id>[/dim]")
 
 
 @app.command("info")

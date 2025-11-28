@@ -6,10 +6,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from zeta_mlx.core import AppConfig, load_config, Success, Failure
 from zeta_mlx.inference import ModelManager, create_model_manager
-from zeta_mlx.inference.api.routes import chat_router, models_router, health_router
+from zeta_mlx.inference.api.routes import chat_router, models_router, health_router, tokenize_router
 from zeta_mlx.inference.api.routes.chat import set_model_manager
 from zeta_mlx.inference.api.routes.models import set_model_manager as set_models_manager
 from zeta_mlx.inference.api.routes.health import set_model_manager as set_health_manager
+from zeta_mlx.inference.api.routes.tokenize import set_model_manager as set_tokenize_manager
 
 
 def create_app(
@@ -47,6 +48,7 @@ def create_app(
         set_model_manager(model_manager)
         set_models_manager(model_manager)
         set_health_manager(model_manager)
+        set_tokenize_manager(model_manager)
 
         # 기본 모델 미리 로드 (선택적)
         preload_models = [config.models.default]
@@ -77,6 +79,7 @@ def create_app(
     app.include_router(health_router)
     app.include_router(models_router)
     app.include_router(chat_router)
+    app.include_router(tokenize_router)
 
     return app
 
@@ -108,10 +111,12 @@ def create_app_with_manager(manager: ModelManager) -> FastAPI:
     set_model_manager(manager)
     set_models_manager(manager)
     set_health_manager(manager)
+    set_tokenize_manager(manager)
 
     # 라우터 등록
     app.include_router(health_router)
     app.include_router(models_router)
     app.include_router(chat_router)
+    app.include_router(tokenize_router)
 
     return app

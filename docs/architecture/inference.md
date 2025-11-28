@@ -636,7 +636,7 @@ print(manager.list_loaded())  # ['qwen3-8b', 'qwen2.5-7b', ...]
 ## Public API (__init__.py)
 
 ```python
-"""MLX LLM Inference - MLX Integration Layer"""
+"""Zeta MLX Inference - MLX Integration Layer"""
 from zeta_mlx_inference.engine import (
     InferenceEngine,
     create_inference_workflow,

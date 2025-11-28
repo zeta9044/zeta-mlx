@@ -576,7 +576,7 @@ def create_app(
             config = config_result.value if isinstance(config_result, Success) else AppConfig()
 
     app = FastAPI(
-        title="MLX LLM Server",
+        title="Zeta MLX Server",
         description="OpenAI-compatible LLM server for Apple Silicon (Multi-Model)",
         version="0.1.0",
         lifespan=lifespan,
@@ -711,7 +711,7 @@ async def unload_model(model_alias: str):
 ## Public API (__init__.py)
 
 ```python
-"""MLX LLM API - OpenAI Compatible HTTP API"""
+"""Zeta MLX API - OpenAI Compatible HTTP API"""
 from zeta_mlx_api.app import create_app, app
 from zeta_mlx_api.dto.requests import ChatRequestDTO, TokenCountRequestDTO
 from zeta_mlx_api.dto.responses import (

@@ -37,6 +37,21 @@ zeta-mlx/
 │   │               ├── __init__.py
 │   │               └── qwen3.py
 │   │
+│   ├── zeta-mlx-embedding/            # ════════════════════════════
+│   │   ├── pyproject.toml            # 임베딩 서빙 레이어
+│   │   └── src/                      #
+│   │       └── zeta_mlx_embedding/    # 임베딩 모델, API
+│   │           ├── __init__.py       # ════════════════════════════
+│   │           ├── types.py          # 임베딩 타입
+│   │           ├── errors.py         # 에러 타입
+│   │           ├── engine.py         # 임베딩 엔진
+│   │           ├── loader.py         # 모델 로더
+│   │           └── api/              # OpenAI 호환 API
+│   │               ├── __init__.py
+│   │               ├── app.py        # FastAPI 앱
+│   │               ├── dto/          # DTO
+│   │               └── routes/       # 라우트
+│   │
 │   ├── zeta-mlx-api/                  # ════════════════════════════
 │   │   ├── pyproject.toml            # HTTP API 레이어
 │   │   └── src/                      #
@@ -108,7 +123,7 @@ zeta-mlx/
 [tool.poetry]
 name = "zeta-mlx-workspace"
 version = "0.1.0"
-description = "MLX LLM Platform Workspace"
+description = "Zeta MLX Platform Workspace"
 authors = ["ZetaLab <zeta@example.com>"]
 packages = []  # 워크스페이스는 패키지 없음
 
@@ -126,6 +141,7 @@ ruff = "^0.8"
 members = [
     "packages/zeta-mlx-core",
     "packages/zeta-mlx-inference",
+    "packages/zeta-mlx-embedding",
     "packages/zeta-mlx-api",
     "packages/zeta-mlx-cli",
     "packages/zeta-mlx-rag",
@@ -140,7 +156,7 @@ members = [
 [tool.poetry]
 name = "zeta-mlx-core"
 version = "0.1.0"
-description = "Core types and pure functions for MLX LLM"
+description = "Core types and pure functions for Zeta MLX"
 packages = [{include = "zeta_mlx_core", from = "src"}]
 
 [tool.poetry.dependencies]
@@ -167,6 +183,28 @@ mlx = "^0.21"
 mlx-lm = "^0.21"
 ```
 
+### Embedding 패키지
+
+```toml
+# /packages/zeta-mlx-embedding/pyproject.toml
+[tool.poetry]
+name = "zeta-mlx-embedding"
+version = "0.1.0"
+description = "Embedding model serving for Zeta MLX"
+packages = [{include = "zeta_mlx_embedding", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.13"
+zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
+numpy = "^1.26"
+sentence-transformers = {version = "^3.0", optional = true}
+fastapi = "^0.115"
+uvicorn = "^0.32"
+
+[tool.poetry.extras]
+sentence-transformers = ["sentence-transformers"]
+```
+
 ### API 패키지
 
 ```toml
@@ -174,7 +212,7 @@ mlx-lm = "^0.21"
 [tool.poetry]
 name = "zeta-mlx-api"
 version = "0.1.0"
-description = "FastAPI server for MLX LLM"
+description = "FastAPI server for Zeta MLX"
 packages = [{include = "zeta_mlx_api", from = "src"}]
 
 [tool.poetry.dependencies]
@@ -192,7 +230,7 @@ uvicorn = {extras = ["standard"], version = "^0.32"}
 [tool.poetry]
 name = "zeta-mlx-cli"
 version = "0.1.0"
-description = "CLI for MLX LLM"
+description = "CLI for Zeta MLX"
 packages = [{include = "zeta_mlx_cli", from = "src"}]
 
 [tool.poetry.dependencies]
@@ -214,7 +252,7 @@ zeta-mlx = "zeta_mlx_cli.main:cli"
 [tool.poetry]
 name = "zeta-mlx-rag"
 version = "0.1.0"
-description = "RAG pipeline for MLX LLM"
+description = "RAG pipeline for Zeta MLX"
 packages = [{include = "zeta_mlx_rag", from = "src"}]
 
 [tool.poetry.dependencies]
@@ -231,7 +269,7 @@ sentence-transformers = "^3.3"
 [tool.poetry]
 name = "zeta-mlx-langchain"
 version = "0.1.0"
-description = "LangChain integration for MLX LLM"
+description = "LangChain integration for Zeta MLX"
 packages = [{include = "zeta_mlx_langchain", from = "src"}]
 
 [tool.poetry.dependencies]

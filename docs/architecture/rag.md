@@ -357,7 +357,7 @@ def create_rag_prompt(context: RAGContext, question: str) -> list[Message]:
 ## Public API (__init__.py)
 
 ```python
-"""MLX LLM RAG - Retrieval-Augmented Generation"""
+"""Zeta MLX RAG - Retrieval-Augmented Generation"""
 from zeta_mlx_rag.types import (
     Document, Chunk, Embedding, SearchResult, RAGContext,
     ChunkId, CollectionName,

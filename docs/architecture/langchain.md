@@ -244,7 +244,7 @@ class TokenCountTool(BaseTool):
 ## Public API (__init__.py)
 
 ```python
-"""MLX LLM LangChain - LangChain Integration"""
+"""Zeta MLX LangChain - LangChain Integration"""
 from zeta_mlx_langchain.chat_model import MLXChatModel
 from zeta_mlx_langchain.embeddings import MLXEmbeddings
 from zeta_mlx_langchain.tools import TokenCountTool

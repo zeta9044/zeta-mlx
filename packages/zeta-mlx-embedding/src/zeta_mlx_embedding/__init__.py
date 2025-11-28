@@ -1,5 +1,5 @@
 """
-MLX LLM Embedding - 함수형 임베딩 서빙 패키지
+Zeta MLX Embedding - 함수형 임베딩 서빙 패키지
 
 OpenAI 호환 /v1/embeddings API를 제공합니다.
 

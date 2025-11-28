@@ -1,4 +1,4 @@
-# MLX LLM Platform Architecture
+# Zeta MLX Platform Architecture
 
 Apple Silicon MLX 기반 LLM 서빙 플랫폼의 함수형 아키텍처입니다.
 
@@ -20,6 +20,7 @@ zeta-mlx/
 ├── packages/
 │   ├── zeta-mlx-core/                 # 순수 도메인 (Pure)
 │   ├── zeta-mlx-inference/            # MLX 추론 (Impure)
+│   ├── zeta-mlx-embedding/            # 임베딩 서빙 (Impure)
 │   ├── zeta-mlx-api/                  # HTTP API (Impure)
 │   ├── zeta-mlx-cli/                  # CLI (Impure)
 │   ├── zeta-mlx-rag/                  # RAG 파이프라인 (Impure)
@@ -42,11 +43,11 @@ zeta-mlx/
                     │             │                      │
                     │     ┌───────┴───────┐              │
                     │     ▼               ▼              │
-                    │  ┌─────────┐  ┌─────────┐         │
-                    │  │inference│  │   rag   │         │
-                    │  └────┬────┘  └────┬────┘         │
-                    │       │            │              │
-                    │       └──────┬─────┘              │
+                    │  ┌─────────┐  ┌─────────┐  ┌─────────┐  │
+                    │  │inference│  │embedding│  │   rag   │  │
+                    │  └────┬────┘  └────┬────┘  └────┬────┘  │
+                    │       │            │            │        │
+                    │       └────────────┼────────────┘        │
                     │              │                    │
                     └──────────────┼────────────────────┘
                                    │
@@ -68,6 +69,7 @@ zeta-mlx/
 |--------|--------|------|--------|
 | `zeta-mlx-core` | Domain (Pure) | 타입, Result, 순수 함수 | 없음 |
 | `zeta-mlx-inference` | Application | MLX 모델 로딩, 추론 | core |
+| `zeta-mlx-embedding` | Application | 임베딩 모델 서빙, OpenAI 호환 API | core |
 | `zeta-mlx-rag` | Application | 문서 처리, 임베딩, 검색 | core |
 | `zeta-mlx-api` | I/O Edge | FastAPI, OpenAI 호환 API | core, inference |
 | `zeta-mlx-cli` | I/O Edge | Click CLI | core, inference, api |
@@ -124,6 +126,7 @@ HTTP Response
 | [packages.md](./packages.md) | 패키지별 상세 구조 |
 | [core.md](./core.md) | Core 패키지 설계 |
 | [inference.md](./inference.md) | Inference 패키지 설계 |
+| [embedding.md](./embedding.md) | Embedding 패키지 설계 |
 | [api.md](./api.md) | API 패키지 설계 |
 | [cli.md](./cli.md) | CLI 패키지 설계 |
 | [rag.md](./rag.md) | RAG 패키지 설계 |

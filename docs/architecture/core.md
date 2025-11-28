@@ -738,7 +738,7 @@ def merge_config(base: AppConfig, overrides: dict) -> AppConfig:
 ## config.yaml 예시
 
 ```yaml
-# MLX LLM Server 설정 파일
+# Zeta MLX Server 설정 파일
 # 위치: ./config.yaml 또는 ~/.config/zeta-mlx/config.yaml
 
 server:
@@ -784,7 +784,7 @@ inference:
 ## Public API (__init__.py)
 
 ```python
-"""MLX LLM Core - Pure Domain Layer"""
+"""Zeta MLX Core - Pure Domain Layer"""
 from zeta_mlx_core.types import (
     # Constrained Types
     Role, ModelName, TokenCount,

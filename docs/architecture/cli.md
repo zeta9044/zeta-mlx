@@ -38,7 +38,7 @@ from zeta_mlx_cli.commands import serve, chat, rag, config as config_cmd
 @click.pass_context
 def cli(ctx: click.Context, config: Path | None):
     """
-    MLX LLM - Apple Silicon LLM Platform
+    Zeta MLX - Apple Silicon LLM Platform
 
     OpenAI 호환 LLM 서버 및 CLI 도구
     """
@@ -108,7 +108,7 @@ def serve(ctx: click.Context, host: str | None, port: int | None, model: str | N
             inference=config.inference,
         )
 
-    console.print(f"[bold green]Starting MLX LLM Server[/bold green]")
+    console.print(f"[bold green]Starting Zeta MLX Server[/bold green]")
     console.print(f"  Host: {final_host}")
     console.print(f"  Port: {final_port}")
     console.print(f"  Model: {config.model.name}")
@@ -281,7 +281,7 @@ def _interactive_mode(
 ## Public API (__init__.py)
 
 ```python
-"""MLX LLM CLI"""
+"""Zeta MLX CLI"""
 from zeta_mlx_cli.main import cli
 
 __version__ = "0.1.0"

@@ -1,4 +1,4 @@
-# Inference 패키지 (mlx-llm-inference)
+# Inference 패키지 (packages/inference)
 
 MLX 기반 추론 엔진입니다. I/O 경계에 위치하며, Core의 순수 타입을 사용합니다.
 
@@ -12,13 +12,13 @@ MLX 기반 추론 엔진입니다. I/O 경계에 위치하며, Core의 순수 �
 ## 모듈 구조
 
 ```
-mlx_llm_inference/
+zeta_mlx/inference/
 ├── __init__.py       # Public API
-├── engine.py         # 추론 엔진 (메인 진입점)
+├── engine.py         # 추론 엔진 (단일 모델)
+├── manager.py        # 다중 모델 관리자 (LRU)
 ├── loader.py         # 모델 로더
 ├── streaming.py      # 스트리밍 Generator
 ├── tokenizer.py      # 토큰 카운터
-├── registry.py       # 모델 레지스트리
 └── custom_models/    # 커스텀 모델
     ├── __init__.py
     └── qwen3.py
@@ -31,16 +31,16 @@ mlx_llm_inference/
 from typing import Iterator, Callable
 from functools import partial
 
-from mlx_llm_core import (
+from zeta_mlx.core import (
     Result, Success, Failure, Railway,
     Message, GenerationParams, InferenceResponse,
     GenerationError, TokenLimitError,
     validate_messages, check_token_limit,
     NonEmptyList,
 )
-from mlx_llm_inference.loader import load_model, ModelBundle
-from mlx_llm_inference.streaming import create_stream_generator
-from mlx_llm_inference.tokenizer import count_tokens, apply_chat_template
+from zeta_mlx.inference.loader import load_model, ModelBundle
+from zeta_mlx.inference.streaming import create_stream_generator
+from zeta_mlx.inference.tokenizer import count_tokens, apply_chat_template
 
 
 # ============================================================
@@ -137,7 +137,7 @@ def create_mlx_generate(bundle: ModelBundle) -> GenerateFn:
 
 def create_mlx_stream(bundle: ModelBundle) -> StreamFn:
     """MLX 스트리밍 함수 생성"""
-    from mlx_llm_inference.streaming import mlx_stream_generator
+    from zeta_mlx.inference.streaming import mlx_stream_generator
 
     def mlx_stream(prompt: str, params: GenerationParams) -> Iterator[str]:
         yield from mlx_stream_generator(
@@ -250,7 +250,7 @@ from dataclasses import dataclass
 from typing import Any
 from functools import lru_cache
 
-from mlx_llm_core import Result, Success, Failure, ModelNotFoundError
+from zeta_mlx.core import Result, Success, Failure, ModelNotFoundError
 
 
 @dataclass(frozen=True)
@@ -264,7 +264,7 @@ class ModelBundle:
 def setup_custom_models() -> None:
     """커스텀 모델 등록"""
     import sys
-    from mlx_llm_inference.custom_models import qwen3
+    from zeta_mlx.inference.custom_models import qwen3
 
     # MLX-LM이 찾을 수 있도록 등록
     sys.modules['mlx_lm.models.qwen3'] = qwen3
@@ -401,89 +401,267 @@ def chunk_stream(
         yield buffer
 ```
 
-## registry.py - 모델 레지스트리
+## manager.py - 모델 관리자
 
 ```python
-"""모델 레지스트리"""
+"""모델 관리자 (단일 모델)"""
 from dataclasses import dataclass
-from typing import Callable, Any
-from functools import lru_cache
+from threading import Lock
+
+from zeta_mlx.core import (
+    Result, Success, Failure,
+    ModelsConfig, ModelDefinition,
+    ModelNotFoundError, GenerationError,
+    Message, GenerationParams, InferenceResponse,
+)
+from zeta_mlx.inference.loader import ModelBundle, load_model_safe
+from zeta_mlx.inference.engine import InferenceEngine
 
 
-@dataclass(frozen=True)
-class ModelInfo:
-    """모델 정보"""
-    name: str
-    model_type: str
-    quantization: str
-    context_length: int
+@dataclass
+class LoadedModel:
+    """로드된 모델 정보"""
+    alias: str
+    definition: ModelDefinition
+    engine: InferenceEngine
 
 
-# 레지스트리 (딕셔너리)
-_model_registry: dict[str, ModelInfo] = {}
+class ModelManager:
+    """
+    모델 관리자 (단일 모델)
+
+    서버당 1개의 모델만 로드합니다.
+    다른 모델 요청 시 기존 모델을 언로드하고 새 모델을 로드합니다.
+    """
+
+    def __init__(self, config: ModelsConfig):
+        self._config = config
+        self._current: LoadedModel | None = None
+        self._lock = Lock()
+
+    @property
+    def default_alias(self) -> str:
+        """기본 모델 별칭"""
+        return self._config.default
+
+    def list_available(self) -> list[str]:
+        """사용 가능한 모델 별칭 목록"""
+        return self._config.list_aliases()
+
+    def list_loaded(self) -> list[str]:
+        """현재 로드된 모델 별칭 목록"""
+        with self._lock:
+            return [self._current.alias] if self._current else []
+
+    def get_model_info(self, alias: str) -> ModelDefinition | None:
+        """모델 정의 조회"""
+        return self._config.get_model(alias)
+
+    def resolve_alias(self, model_name: str) -> str:
+        """
+        모델 이름을 별칭으로 해석
+
+        - 빈 문자열 또는 None → 기본 모델
+        - 별칭이 존재하면 그대로 사용
+        - HuggingFace 경로면 역방향 조회
+        """
+        if not model_name:
+            return self._config.default
+
+        # 별칭으로 직접 존재하는지
+        if model_name in self._config.available:
+            return model_name
+
+        # HuggingFace 경로로 역방향 조회
+        for alias, defn in self._config.available.items():
+            if defn.path == model_name:
+                return alias
+
+        # 찾지 못하면 그대로 반환 (에러는 호출자가 처리)
+        return model_name
+
+    def get_engine(self, alias: str) -> Result[InferenceEngine, ModelNotFoundError]:
+        """
+        모델 엔진 가져오기 (필요시 로드)
+
+        단일 모델만 유지합니다. 다른 모델 요청 시 기존 모델을 언로드합니다.
+        """
+        resolved = self.resolve_alias(alias)
+
+        with self._lock:
+            # 이미 같은 모델이 로드된 경우
+            if self._current and self._current.alias == resolved:
+                return Success(self._current.engine)
+
+            # 모델 정의 확인
+            definition = self._config.get_model(resolved)
+            if definition is None:
+                return Failure(ModelNotFoundError(model=resolved))
+
+            # 기존 모델 언로드
+            if self._current:
+                print(f"Unloading model: {self._current.alias}")
+                self._current = None
+
+            # 모델 로드
+            print(f"Loading model: {resolved} ({definition.path})")
+            bundle_result = load_model_safe(definition.path)
+
+            if isinstance(bundle_result, Failure):
+                return Failure(ModelNotFoundError(model=definition.path))
+
+            engine = InferenceEngine(
+                bundle_result.value,
+                max_context=definition.context_length,
+            )
+
+            self._current = LoadedModel(
+                alias=resolved,
+                definition=definition,
+                engine=engine,
+            )
+
+            return Success(engine)
+
+    def generate(
+        self,
+        alias: str,
+        messages: list[Message],
+        params: GenerationParams,
+    ) -> Result[InferenceResponse, GenerationError | ModelNotFoundError]:
+        """지정된 모델로 생성"""
+        engine_result = self.get_engine(alias)
+
+        if isinstance(engine_result, Failure):
+            return engine_result
+
+        return engine_result.value.generate(messages, params)
+
+    def stream(
+        self,
+        alias: str,
+        messages: list[Message],
+        params: GenerationParams,
+    ) -> Iterator[str]:
+        """지정된 모델로 스트리밍 생성"""
+        engine_result = self.get_engine(alias)
+
+        if isinstance(engine_result, Failure):
+            yield f"[Error: Model '{alias}' not found]"
+            return
+
+        yield from engine_result.value.stream(messages, params)
+
+    def preload(self, aliases: list[str]) -> dict[str, bool]:
+        """지정된 모델들 미리 로드"""
+        results = {}
+        for alias in aliases:
+            result = self.get_engine(alias)
+            results[alias] = isinstance(result, Success)
+        return results
+
+    def unload(self, alias: str) -> bool:
+        """모델 명시적 언로드"""
+        with self._lock:
+            if alias in self._loaded:
+                del self._loaded[alias]
+                return True
+            return False
+
+    def unload_all(self) -> None:
+        """모든 모델 언로드"""
+        with self._lock:
+            self._loaded.clear()
 
 
-def register_model(info: ModelInfo) -> None:
-    """모델 등록"""
-    _model_registry[info.name] = info
+# ============================================================
+# 팩토리 함수
+# ============================================================
+
+def create_model_manager(config: ModelsConfig) -> ModelManager:
+    """모델 관리자 생성"""
+    return ModelManager(config)
 
 
-def get_model_info(name: str) -> ModelInfo | None:
-    """모델 정보 조회"""
-    return _model_registry.get(name)
+def create_model_manager_from_yaml(config_path: str) -> Result[ModelManager, str]:
+    """YAML 설정에서 모델 관리자 생성"""
+    from zeta_mlx.core import load_config
 
+    config_result = load_config(config_path)
+    if isinstance(config_result, Failure):
+        return Failure(str(config_result.error))
 
-def list_registered_models() -> list[ModelInfo]:
-    """등록된 모델 목록"""
-    return list(_model_registry.values())
+    return Success(ModelManager(config_result.value.models))
+```
 
+## 다중 모델 사용 예시
 
-# 기본 모델 등록
-def _register_defaults():
-    register_model(ModelInfo(
-        name="mlx-community/Qwen3-8B-4bit",
-        model_type="qwen3",
-        quantization="4bit",
-        context_length=8192,
-    ))
-    register_model(ModelInfo(
-        name="mlx-community/Qwen2.5-7B-Instruct-4bit",
-        model_type="qwen2",
-        quantization="4bit",
-        context_length=32768,
-    ))
+```python
+from zeta_mlx.core import load_config, Message, GenerationParams
+from zeta_mlx.inference import create_model_manager
 
-_register_defaults()
+# 설정 로드
+config = load_config("config.yaml").unwrap_or_raise()
+
+# 모델 관리자 생성
+manager = create_model_manager(config.models)
+
+# 사용 가능한 모델 확인
+print(manager.list_available())  # ['qwen3-8b', 'qwen3-4b', 'qwen2.5-7b', ...]
+
+# 모델 미리 로드 (선택적)
+manager.preload(["qwen3-8b"])
+
+# 기본 모델로 생성
+messages = [Message(role="user", content="Hello!")]
+params = GenerationParams.default()
+
+result = manager.generate("", messages, params)  # 빈 문자열 = 기본 모델
+
+# 특정 모델로 생성
+result = manager.generate("qwen2.5-7b", messages, params)
+
+# 스트리밍
+for chunk in manager.stream("qwen3-4b", messages, params):
+    print(chunk, end="", flush=True)
+
+# 현재 로드된 모델 확인
+print(manager.list_loaded())  # ['qwen3-8b', 'qwen2.5-7b', ...]
 ```
 
 ## Public API (__init__.py)
 
 ```python
-"""MLX LLM Inference - MLX Integration Layer"""
-from mlx_llm_inference.engine import (
+"""Zeta MLX Inference - MLX Integration Layer"""
+from zeta_mlx.inference.engine import (
     InferenceEngine,
     create_inference_workflow,
     # Function types
     GenerateFn, StreamFn, TokenCountFn, TemplateFn,
 )
-from mlx_llm_inference.loader import (
+from zeta_mlx.inference.manager import (
+    ModelManager, LoadedModel,
+    create_model_manager, create_model_manager_from_yaml,
+)
+from zeta_mlx.inference.loader import (
     ModelBundle,
     load_model, load_model_safe, unload_model,
 )
-from mlx_llm_inference.streaming import (
+from zeta_mlx.inference.streaming import (
     mlx_stream_generator, chunk_stream,
-)
-from mlx_llm_inference.registry import (
-    ModelInfo,
-    register_model, get_model_info, list_registered_models,
 )
 
 __version__ = "0.1.0"
 
 __all__ = [
-    # Engine
+    # Engine (단일 모델)
     "InferenceEngine",
     "create_inference_workflow",
+    # Manager (다중 모델)
+    "ModelManager",
+    "LoadedModel",
+    "create_model_manager",
+    "create_model_manager_from_yaml",
     # Types
     "GenerateFn", "StreamFn", "TokenCountFn", "TemplateFn",
     # Loader
@@ -491,20 +669,17 @@ __all__ = [
     "load_model", "load_model_safe", "unload_model",
     # Streaming
     "mlx_stream_generator", "chunk_stream",
-    # Registry
-    "ModelInfo",
-    "register_model", "get_model_info", "list_registered_models",
 ]
 ```
 
 ## 사용 예시
 
 ```python
-from mlx_llm_core import (
+from zeta_mlx.core import (
     Message, GenerationParams, NonEmptyList,
     Temperature, TopP, MaxTokens,
 )
-from mlx_llm_inference import InferenceEngine
+from zeta_mlx.inference import InferenceEngine
 
 # 엔진 생성
 engine = InferenceEngine("mlx-community/Qwen3-8B-4bit")

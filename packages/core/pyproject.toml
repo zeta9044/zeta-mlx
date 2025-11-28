@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "zeta-mlx-core"
+version = "0.1.0"
+description = "Core types and pure functions for Zeta MLX"
+authors = ["ZetaLab <zeta9044@gmail.com>"]
+packages = [{include = "zeta_mlx", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.13"
+pydantic = "^2.9"
+pydantic-settings = "^2.6"
+pyyaml = "^6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

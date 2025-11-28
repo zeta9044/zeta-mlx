@@ -7,8 +7,8 @@ from zeta_mlx_core import (
     Temperature, TopP, MaxTokens,
     ValidationError,
 )
-from zeta_mlx_api.dto.requests import ChatRequestDTO, MessageDTO
-from zeta_mlx_api.dto.responses import (
+from zeta_mlx_inference.api.dto.requests import ChatRequestDTO, MessageDTO
+from zeta_mlx_inference.api.dto.responses import (
     ChatResponseDTO, ChoiceDTO, MessageResponseDTO, UsageDTO,
     StreamResponseDTO, StreamChoiceDTO, DeltaDTO,
     ModelDTO, ModelsResponseDTO,

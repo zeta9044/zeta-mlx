@@ -1,10 +1,10 @@
-"""MLX LLM API - FastAPI Server (Multi-Model)"""
-from zeta_mlx_api.app import (
+"""Zeta MLX Inference API - FastAPI Server (Multi-Model)"""
+from zeta_mlx_inference.api.app import (
     create_app,
     create_app_from_yaml,
     create_app_with_manager,
 )
-from zeta_mlx_api.dto import (
+from zeta_mlx_inference.api.dto import (
     ChatRequestDTO, MessageDTO,
     ChatResponseDTO, StreamResponseDTO,
     ChoiceDTO, MessageResponseDTO, UsageDTO,
@@ -12,7 +12,7 @@ from zeta_mlx_api.dto import (
     ModelsResponseDTO, ModelDTO,
     HealthResponseDTO, ErrorResponseDTO,
 )
-from zeta_mlx_api.converters import (
+from zeta_mlx_inference.api.converters import (
     chat_request_dto_to_domain,
     create_chat_response,
     create_stream_chunk,

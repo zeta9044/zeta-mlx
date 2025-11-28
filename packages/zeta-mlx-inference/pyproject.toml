@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "zeta-mlx-inference"
 version = "0.1.0"
-description = "MLX inference engine for LLM"
+description = "MLX inference engine and API for Zeta MLX"
 authors = ["ZetaLab <zeta9044@gmail.com>"]
 packages = [{include = "zeta_mlx_inference", from = "src"}]
 
@@ -10,6 +10,8 @@ python = "^3.10,<3.13"
 zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
 mlx = "^0.30"
 mlx-lm = "^0.28"
+fastapi = "^0.115"
+uvicorn = {extras = ["standard"], version = "^0.32"}
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,8 +1,8 @@
 """Health Check 라우트"""
 from fastapi import APIRouter
 from zeta_mlx_inference import ModelManager
-from zeta_mlx_api.dto.responses import HealthResponseDTO
-from zeta_mlx_api.converters import create_health_response
+from zeta_mlx_inference.api.dto.responses import HealthResponseDTO
+from zeta_mlx_inference.api.converters import create_health_response
 
 router = APIRouter(tags=["health"])
 

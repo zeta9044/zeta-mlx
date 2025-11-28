@@ -25,20 +25,31 @@ zeta-mlx/
 │   │           └── config.py         # 설정 타입 (Pydantic)
 │   │
 │   ├── zeta-mlx-inference/            # ════════════════════════════
-│   │   ├── pyproject.toml            # MLX 추론 레이어
+│   │   ├── pyproject.toml            # MLX 추론 + API 레이어
 │   │   └── src/                      #
-│   │       └── zeta_mlx_inference/    # 모델 로딩, 생성, 스트리밍
+│   │       └── zeta_mlx_inference/    # 모델 로딩, 생성, API
 │   │           ├── __init__.py       # ════════════════════════════
 │   │           ├── engine.py         # 추론 엔진 (generate 함수)
 │   │           ├── loader.py         # 모델 로더 (load_model 함수)
 │   │           ├── streaming.py      # 스트리밍 Generator
-│   │           ├── tokenizer.py      # 토큰 카운터
-│   │           └── custom_models/    # 커스텀 모델 (Qwen3 등)
+│   │           ├── manager.py        # 모델 관리자
+│   │           ├── custom_models/    # 커스텀 모델 (Qwen3 등)
+│   │           │   ├── __init__.py
+│   │           │   └── qwen3.py
+│   │           └── api/              # OpenAI 호환 API
 │   │               ├── __init__.py
-│   │               └── qwen3.py
+│   │               ├── app.py        # FastAPI 앱
+│   │               ├── converters.py # DTO <-> Domain 변환
+│   │               ├── dto/          # DTO
+│   │               │   ├── requests.py
+│   │               │   └── responses.py
+│   │               └── routes/       # 라우트
+│   │                   ├── chat.py   # /v1/chat/completions
+│   │                   ├── models.py # /v1/models
+│   │                   └── health.py # /health
 │   │
 │   ├── zeta-mlx-embedding/            # ════════════════════════════
-│   │   ├── pyproject.toml            # 임베딩 서빙 레이어
+│   │   ├── pyproject.toml            # 임베딩 + API 레이어
 │   │   └── src/                      #
 │   │       └── zeta_mlx_embedding/    # 임베딩 모델, API
 │   │           ├── __init__.py       # ════════════════════════════
@@ -51,22 +62,6 @@ zeta-mlx/
 │   │               ├── app.py        # FastAPI 앱
 │   │               ├── dto/          # DTO
 │   │               └── routes/       # 라우트
-│   │
-│   ├── zeta-mlx-api/                  # ════════════════════════════
-│   │   ├── pyproject.toml            # HTTP API 레이어
-│   │   └── src/                      #
-│   │       └── zeta_mlx_api/          # FastAPI, OpenAI 호환
-│   │           ├── __init__.py       # ════════════════════════════
-│   │           ├── app.py            # FastAPI 앱
-│   │           ├── routes/           # 라우트 핸들러
-│   │           │   ├── chat.py       # /v1/chat/completions
-│   │           │   ├── models.py     # /v1/models
-│   │           │   └── health.py     # /health
-│   │           ├── dto/              # DTO (외부 세계)
-│   │           │   ├── requests.py   # 요청 DTO
-│   │           │   └── responses.py  # 응답 DTO
-│   │           ├── converters.py     # DTO <-> Domain 변환
-│   │           └── middleware.py     # CORS, 로깅
 │   │
 │   ├── zeta-mlx-cli/                  # ════════════════════════════
 │   │   ├── pyproject.toml            # CLI 레이어
@@ -142,7 +137,6 @@ members = [
     "packages/zeta-mlx-core",
     "packages/zeta-mlx-inference",
     "packages/zeta-mlx-embedding",
-    "packages/zeta-mlx-api",
     "packages/zeta-mlx-cli",
     "packages/zeta-mlx-rag",
     "packages/zeta-mlx-langchain",
@@ -173,14 +167,16 @@ pyyaml = "^6.0"
 [tool.poetry]
 name = "zeta-mlx-inference"
 version = "0.1.0"
-description = "MLX inference engine"
+description = "MLX inference engine and API for Zeta MLX"
 packages = [{include = "zeta_mlx_inference", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
 zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
-mlx = "^0.21"
-mlx-lm = "^0.21"
+mlx = "^0.30"
+mlx-lm = "^0.28"
+fastapi = "^0.115"
+uvicorn = {extras = ["standard"], version = "^0.32"}
 ```
 
 ### Embedding 패키지
@@ -205,24 +201,6 @@ uvicorn = "^0.32"
 sentence-transformers = ["sentence-transformers"]
 ```
 
-### API 패키지
-
-```toml
-# /packages/zeta-mlx-api/pyproject.toml
-[tool.poetry]
-name = "zeta-mlx-api"
-version = "0.1.0"
-description = "FastAPI server for Zeta MLX"
-packages = [{include = "zeta_mlx_api", from = "src"}]
-
-[tool.poetry.dependencies]
-python = "^3.10,<3.13"
-zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
-zeta-mlx-inference = {path = "../zeta-mlx-inference", develop = true}
-fastapi = "^0.115"
-uvicorn = {extras = ["standard"], version = "^0.32"}
-```
-
 ### CLI 패키지
 
 ```toml
@@ -237,12 +215,11 @@ packages = [{include = "zeta_mlx_cli", from = "src"}]
 python = "^3.10,<3.13"
 zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
 zeta-mlx-inference = {path = "../zeta-mlx-inference", develop = true}
-zeta-mlx-api = {path = "../zeta-mlx-api", develop = true}
-click = "^8.1"
-rich = "^13.9"
+typer = {extras = ["all"], version = "^0.16"}
+rich = "^13.7"
 
 [tool.poetry.scripts]
-zeta-mlx = "zeta_mlx_cli.main:cli"
+zeta-mlx = "zeta_mlx_cli:cli"
 ```
 
 ### RAG 패키지
@@ -284,21 +261,22 @@ langchain-core = "^0.3"
 ### 허용된 의존성 방향
 
 ```
-cli ──► api ──► inference ──► core
-         │           │
-         │           ▼
-         └────► rag ──► core
-
+cli ──► inference ──► core
+             │
+             ▼
 langchain ──► inference ──► core
+
+embedding ──► core
+
+rag ──► core
 ```
 
 ### 금지된 의존성
 
 ```
 core ──✗──► inference    # Core는 외부 의존 금지
-core ──✗──► api          # Core는 순수해야 함
-inference ──✗──► api     # 역방향 금지
-rag ──✗──► api           # 역방향 금지
+core ──✗──► embedding    # Core는 순수해야 함
+inference ──✗──► cli     # 역방향 금지
 ```
 
 ## 설치 및 개발

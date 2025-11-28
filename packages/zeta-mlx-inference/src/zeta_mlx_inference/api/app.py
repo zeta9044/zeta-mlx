@@ -6,10 +6,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from zeta_mlx_core import AppConfig, load_config, Success, Failure
 from zeta_mlx_inference import ModelManager, create_model_manager
-from zeta_mlx_api.routes import chat_router, models_router, health_router
-from zeta_mlx_api.routes.chat import set_model_manager
-from zeta_mlx_api.routes.models import set_model_manager as set_models_manager
-from zeta_mlx_api.routes.health import set_model_manager as set_health_manager
+from zeta_mlx_inference.api.routes import chat_router, models_router, health_router
+from zeta_mlx_inference.api.routes.chat import set_model_manager
+from zeta_mlx_inference.api.routes.models import set_model_manager as set_models_manager
+from zeta_mlx_inference.api.routes.health import set_model_manager as set_health_manager
 
 
 def create_app(
@@ -58,7 +58,7 @@ def create_app(
         model_manager.unload_all()
 
     app = FastAPI(
-        title="MLX LLM Server",
+        title="Zeta MLX Server",
         description="OpenAI-compatible LLM inference server powered by MLX (Multi-Model)",
         version="0.1.0",
         lifespan=lifespan,
@@ -89,7 +89,7 @@ def create_app_from_yaml(config_path: str | Path) -> FastAPI:
 def create_app_with_manager(manager: ModelManager) -> FastAPI:
     """이미 생성된 모델 관리자로 앱 생성 (테스트용)"""
     app = FastAPI(
-        title="MLX LLM Server",
+        title="Zeta MLX Server",
         description="OpenAI-compatible LLM inference server powered by MLX (Multi-Model)",
         version="0.1.0",
     )

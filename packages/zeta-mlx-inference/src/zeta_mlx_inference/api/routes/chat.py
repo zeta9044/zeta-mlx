@@ -5,9 +5,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from zeta_mlx_core import Failure, Success
 from zeta_mlx_inference import ModelManager
-from zeta_mlx_api.dto.requests import ChatRequestDTO
-from zeta_mlx_api.dto.responses import ChatResponseDTO, ErrorResponseDTO
-from zeta_mlx_api.converters import (
+from zeta_mlx_inference.api.dto.requests import ChatRequestDTO
+from zeta_mlx_inference.api.dto.responses import ChatResponseDTO, ErrorResponseDTO
+from zeta_mlx_inference.api.converters import (
     chat_request_dto_to_domain,
     create_chat_response,
     create_stream_chunk,

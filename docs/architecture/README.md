@@ -19,9 +19,8 @@ zeta-mlx/
 ├── pyproject.toml                    # Workspace 루트
 ├── packages/
 │   ├── zeta-mlx-core/                 # 순수 도메인 (Pure)
-│   ├── zeta-mlx-inference/            # MLX 추론 (Impure)
-│   ├── zeta-mlx-embedding/            # 임베딩 서빙 (Impure)
-│   ├── zeta-mlx-api/                  # HTTP API (Impure)
+│   ├── zeta-mlx-inference/            # MLX 추론 + API (Impure)
+│   ├── zeta-mlx-embedding/            # 임베딩 서빙 + API (Impure)
 │   ├── zeta-mlx-cli/                  # CLI (Impure)
 │   ├── zeta-mlx-rag/                  # RAG 파이프라인 (Impure)
 │   └── zeta-mlx-langchain/            # LangChain 어댑터 (Impure)
@@ -35,32 +34,37 @@ zeta-mlx/
 ```
                     ┌─────────────────────────────────────┐
                     │           I/O Edge (Impure)         │
-                    │  ┌─────┐  ┌─────┐  ┌───────────┐   │
-                    │  │ cli │  │ api │  │ langchain │   │
-                    │  └──┬──┘  └──┬──┘  └─────┬─────┘   │
-                    │     │       │           │          │
-                    │     └───────┼───────────┘          │
-                    │             │                      │
-                    │     ┌───────┴───────┐              │
-                    │     ▼               ▼              │
-                    │  ┌─────────┐  ┌─────────┐  ┌─────────┐  │
-                    │  │inference│  │embedding│  │   rag   │  │
-                    │  └────┬────┘  └────┬────┘  └────┬────┘  │
-                    │       │            │            │        │
-                    │       └────────────┼────────────┘        │
-                    │              │                    │
-                    └──────────────┼────────────────────┘
-                                   │
-                    ┌──────────────▼────────────────────┐
-                    │         Domain Core (Pure)        │
-                    │         ┌──────────┐              │
-                    │         │   core   │              │
-                    │         │          │              │
-                    │         │ - Types  │              │
-                    │         │ - Result │              │
-                    │         │ - Pipes  │              │
-                    │         └──────────┘              │
-                    └───────────────────────────────────┘
+                    │  ┌─────┐            ┌───────────┐   │
+                    │  │ cli │            │ langchain │   │
+                    │  └──┬──┘            └─────┬─────┘   │
+                    │     │                     │         │
+                    │     └──────────┬──────────┘         │
+                    │                │                    │
+                    │     ┌──────────┴──────────┐         │
+                    │     ▼                     ▼         │
+                    │  ┌─────────────┐  ┌─────────────┐   │
+                    │  │  inference  │  │  embedding  │   │
+                    │  │  + api/     │  │  + api/     │   │
+                    │  └──────┬──────┘  └──────┬──────┘   │
+                    │         │                │          │
+                    │         └────────┬───────┘          │
+                    │                  │                  │
+                    │           ┌──────┴──────┐           │
+                    │           │     rag     │           │
+                    │           └──────┬──────┘           │
+                    │                  │                  │
+                    └──────────────────┼──────────────────┘
+                                       │
+                    ┌──────────────────▼──────────────────┐
+                    │         Domain Core (Pure)          │
+                    │         ┌──────────┐                │
+                    │         │   core   │                │
+                    │         │          │                │
+                    │         │ - Types  │                │
+                    │         │ - Result │                │
+                    │         │ - Pipes  │                │
+                    │         └──────────┘                │
+                    └─────────────────────────────────────┘
 ```
 
 ## 패키지별 책임
@@ -68,11 +72,10 @@ zeta-mlx/
 | 패키지 | 레이어 | 책임 | 의존성 |
 |--------|--------|------|--------|
 | `zeta-mlx-core` | Domain (Pure) | 타입, Result, 순수 함수 | 없음 |
-| `zeta-mlx-inference` | Application | MLX 모델 로딩, 추론 | core |
-| `zeta-mlx-embedding` | Application | 임베딩 모델 서빙, OpenAI 호환 API | core |
+| `zeta-mlx-inference` | Application | MLX 추론 엔진 + OpenAI 호환 API | core |
+| `zeta-mlx-embedding` | Application | 임베딩 엔진 + OpenAI 호환 API | core |
 | `zeta-mlx-rag` | Application | 문서 처리, 임베딩, 검색 | core |
-| `zeta-mlx-api` | I/O Edge | FastAPI, OpenAI 호환 API | core, inference |
-| `zeta-mlx-cli` | I/O Edge | Click CLI | core, inference, api |
+| `zeta-mlx-cli` | I/O Edge | Typer CLI | core, inference |
 | `zeta-mlx-langchain` | I/O Edge | LangChain 어댑터 | core, inference |
 
 ## 데이터 흐름
@@ -125,9 +128,8 @@ HTTP Response
 |------|------|
 | [packages.md](./packages.md) | 패키지별 상세 구조 |
 | [core.md](./core.md) | Core 패키지 설계 |
-| [inference.md](./inference.md) | Inference 패키지 설계 |
-| [embedding.md](./embedding.md) | Embedding 패키지 설계 |
-| [api.md](./api.md) | API 패키지 설계 |
+| [inference.md](./inference.md) | Inference 패키지 설계 (엔진 + API) |
+| [embedding.md](./embedding.md) | Embedding 패키지 설계 (엔진 + API) |
 | [cli.md](./cli.md) | CLI 패키지 설계 |
 | [rag.md](./rag.md) | RAG 패키지 설계 |
 | [langchain.md](./langchain.md) | LangChain 패키지 설계 |

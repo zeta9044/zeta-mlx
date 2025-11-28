@@ -172,12 +172,12 @@ def _start_foreground(
         config = merge_config(config, overrides)
 
     # 서버 정보 출력
-    console.print(f"[bold blue]Starting MLX LLM Server (Multi-Model)...[/bold blue]")
+    console.print(f"[bold blue]Starting Zeta MLX Server (Multi-Model)...[/bold blue]")
     console.print(f"  Host:    [cyan]{config.server.host}:{config.server.port}[/cyan]")
     console.print(f"  Default: [green]{config.models.default}[/green]")
     console.print(f"  Models:  [yellow]{', '.join(config.models.list_aliases())}[/yellow]")
 
-    from zeta_mlx_api import create_app
+    from zeta_mlx_inference.api import create_app
 
     fastapi_app = create_app(config)
 

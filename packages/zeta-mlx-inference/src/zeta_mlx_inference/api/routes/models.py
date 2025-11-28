@@ -3,8 +3,8 @@ import time
 from fastapi import APIRouter, HTTPException
 from zeta_mlx_core import Failure
 from zeta_mlx_inference import ModelManager
-from zeta_mlx_api.dto.responses import ModelsResponseDTO
-from zeta_mlx_api.converters import create_model_dto, create_models_response
+from zeta_mlx_inference.api.dto.responses import ModelsResponseDTO
+from zeta_mlx_inference.api.converters import create_model_dto, create_models_response
 
 router = APIRouter(prefix="/v1", tags=["models"])
 

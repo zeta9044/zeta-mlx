@@ -1,6 +1,6 @@
 """DTOs for API"""
-from zeta_mlx_api.dto.requests import ChatRequestDTO, MessageDTO
-from zeta_mlx_api.dto.responses import (
+from zeta_mlx_inference.api.dto.requests import ChatRequestDTO, MessageDTO
+from zeta_mlx_inference.api.dto.responses import (
     ChatResponseDTO, StreamResponseDTO,
     ChoiceDTO, MessageResponseDTO, UsageDTO,
     StreamChoiceDTO, DeltaDTO,

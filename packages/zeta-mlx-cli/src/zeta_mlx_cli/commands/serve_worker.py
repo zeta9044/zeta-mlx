@@ -13,7 +13,7 @@ def main() -> None:
     args = parser.parse_args()
 
     from zeta_mlx_core import load_config, merge_config, AppConfig, Success, Failure
-    from zeta_mlx_api import create_app
+    from zeta_mlx_inference.api import create_app
 
     # 설정 로드
     if args.config:

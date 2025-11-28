@@ -1,7 +1,7 @@
 """Zeta MLX CLI 메인 엔트리"""
 import typer
 from rich.console import Console
-from zeta_mlx.cli.commands import serve, chat, models, embedding
+from zeta_mlx.cli.commands import llm, chat, models, embedding
 
 console = Console()
 
@@ -12,7 +12,7 @@ app = typer.Typer(
 )
 
 # 서브커맨드 등록
-app.add_typer(serve.app, name="serve", help="LLM 서버 (포트 9044)")
+app.add_typer(llm.app, name="llm", help="LLM 서버 (포트 9044)")
 app.add_typer(embedding.app, name="embedding", help="임베딩 서버 (포트 9045)")
 app.add_typer(chat.app, name="chat")
 app.add_typer(models.app, name="models")

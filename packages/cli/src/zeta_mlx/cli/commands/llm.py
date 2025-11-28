@@ -104,7 +104,7 @@ def _start_daemon(
     _ensure_dir()
 
     # 커맨드 구성
-    cmd = [sys.executable, "-m", "zeta_mlx_cli.commands.serve_worker"]
+    cmd = [sys.executable, "-m", "zeta_mlx.cli.commands.llm_worker"]
     if config_path:
         cmd.extend(["--config", str(config_path)])
     if port:

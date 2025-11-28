@@ -44,11 +44,10 @@ async def list_loaded_models():
     LRU 캐시에 있는 모델들을 반환합니다.
     """
     if _model_manager is None:
-        return {"loaded": [], "max_loaded": 0, "default": ""}
+        return {"loaded": [], "default": ""}
 
     return {
         "loaded": _model_manager.list_loaded(),
-        "max_loaded": _model_manager._config.max_loaded,
         "default": _model_manager.default_alias,
     }
 

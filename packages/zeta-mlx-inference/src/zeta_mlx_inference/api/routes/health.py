@@ -56,7 +56,6 @@ async def health_detail():
                 "available": [],
                 "loaded": [],
                 "default": "",
-                "max_loaded": 0,
             },
         }
 
@@ -67,6 +66,5 @@ async def health_detail():
             "available": _model_manager.list_available(),
             "loaded": _model_manager.list_loaded(),
             "default": _model_manager.default_alias,
-            "max_loaded": _model_manager._config.max_loaded,
         },
     }

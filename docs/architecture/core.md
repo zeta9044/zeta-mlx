@@ -598,9 +598,8 @@ class ModelDefinition(BaseModel):
 
 
 class ModelsConfig(BaseModel):
-    """다중 모델 설정"""
+    """모델 설정"""
     default: str = "qwen3-8b"  # 기본 모델 별칭
-    max_loaded: int = Field(default=2, ge=1, le=8)  # 동시 로드 최대 수
     available: dict[str, ModelDefinition] = Field(default_factory=lambda: {
         "qwen3-8b": ModelDefinition(
             path="mlx-community/Qwen3-8B-4bit",
@@ -747,7 +746,6 @@ server:
 
 models:
   default: qwen3-8b  # 기본 모델 별칭
-  max_loaded: 2       # 동시 로드 최대 모델 수
 
   available:
     qwen3-8b:

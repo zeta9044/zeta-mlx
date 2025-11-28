@@ -11,7 +11,6 @@ server:
 # LLM 모델 설정
 models:
   default: qwen3-4b  # 기본 모델 별칭
-  max_loaded: 2      # 동시 로드 최대 모델 수
 
   available:
     qwen3-8b:
@@ -55,7 +54,6 @@ embedding_server:
 # 임베딩 모델 설정
 embedding_models:
   default: minilm  # 기본 모델 별칭
-  max_loaded: 2    # 동시 로드 최대 모델 수
   batch_size: 32   # 배치 크기
 
   available:

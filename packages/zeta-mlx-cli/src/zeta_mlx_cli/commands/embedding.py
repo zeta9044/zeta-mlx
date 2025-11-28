@@ -327,7 +327,6 @@ def show_config(
 
     console.print("\n[bold]Models:[/bold]")
     console.print(f"  default: {config.embedding_models.default}")
-    console.print(f"  max_loaded: {config.embedding_models.max_loaded}")
     console.print(f"  batch_size: {config.embedding_models.batch_size}")
 
     table = Table(title="Available Embedding Models")

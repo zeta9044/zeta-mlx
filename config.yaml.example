@@ -1,4 +1,4 @@
-# MLX LLM Server 설정 파일 예시
+# Zeta MLX Server 설정 파일 예시
 # 사용하려면 config.yaml로 복사하세요: cp config.yaml.example config.yaml
 
 server:
@@ -7,7 +7,6 @@ server:
 
 models:
   default: qwen3-8b  # 기본 모델 별칭
-  max_loaded: 2       # 동시 로드 최대 모델 수
 
   available:
     qwen3-8b:

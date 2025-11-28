@@ -310,7 +310,6 @@ def show_config(
 
     console.print("\n[bold]Models:[/bold]")
     console.print(f"  default: {config.models.default}")
-    console.print(f"  max_loaded: {config.models.max_loaded}")
 
     table = Table(title="Available Models")
     table.add_column("Alias", style="cyan")

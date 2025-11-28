@@ -1,7 +1,5 @@
-"""다중 모델 관리자 (LRU 기반)"""
-from collections import OrderedDict
+"""모델 관리자 (단일 모델)"""
 from dataclasses import dataclass
-from typing import Iterator
 from threading import Lock
 
 from zeta_mlx_core import (
@@ -24,15 +22,15 @@ class LoadedModel:
 
 class ModelManager:
     """
-    다중 모델 관리자
+    모델 관리자 (단일 모델)
 
-    LRU 방식으로 모델을 관리하며, 최대 로드 수를 초과하면
-    가장 오래 사용되지 않은 모델을 언로드합니다.
+    서버당 1개의 모델만 로드합니다.
+    다른 모델 요청 시 기존 모델을 언로드하고 새 모델을 로드합니다.
     """
 
     def __init__(self, config: ModelsConfig):
         self._config = config
-        self._loaded: OrderedDict[str, LoadedModel] = OrderedDict()
+        self._current: LoadedModel | None = None
         self._lock = Lock()
 
     @property
@@ -47,7 +45,7 @@ class ModelManager:
     def list_loaded(self) -> list[str]:
         """현재 로드된 모델 별칭 목록"""
         with self._lock:
-            return list(self._loaded.keys())
+            return [self._current.alias] if self._current else []
 
     def get_model_info(self, alias: str) -> ModelDefinition | None:
         """모델 정의 조회"""
@@ -80,26 +78,24 @@ class ModelManager:
         """
         모델 엔진 가져오기 (필요시 로드)
 
-        LRU 방식으로 최근 사용된 모델을 유지합니다.
+        단일 모델만 유지합니다. 다른 모델 요청 시 기존 모델을 언로드합니다.
         """
         resolved = self.resolve_alias(alias)
 
         with self._lock:
-            # 이미 로드된 경우: LRU 갱신
-            if resolved in self._loaded:
-                self._loaded.move_to_end(resolved)
-                return Success(self._loaded[resolved].engine)
+            # 이미 같은 모델이 로드된 경우
+            if self._current and self._current.alias == resolved:
+                return Success(self._current.engine)
 
             # 모델 정의 확인
             definition = self._config.get_model(resolved)
             if definition is None:
                 return Failure(ModelNotFoundError(model_name=resolved))
 
-            # 최대 로드 수 초과 시 가장 오래된 모델 언로드
-            while len(self._loaded) >= self._config.max_loaded:
-                oldest_alias, oldest = self._loaded.popitem(last=False)
-                print(f"Unloading model: {oldest_alias}")
-                del oldest  # GC에서 메모리 해제
+            # 기존 모델 언로드
+            if self._current:
+                print(f"Unloading model: {self._current.alias}")
+                self._current = None
 
             # 모델 로드
             print(f"Loading model: {resolved} ({definition.path})")
@@ -110,7 +106,7 @@ class ModelManager:
 
             engine = InferenceEngine(bundle_result.value)
 
-            self._loaded[resolved] = LoadedModel(
+            self._current = LoadedModel(
                 alias=resolved,
                 definition=definition,
                 engine=engine,

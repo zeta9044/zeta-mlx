@@ -10,13 +10,12 @@ packages = []
 python = "^3.10,<3.13"
 
 # Workspace packages (path dependencies)
-zeta-mlx-core = {path = "packages/zeta-mlx-core", develop = true}
-zeta-mlx-inference = {path = "packages/zeta-mlx-inference", develop = true}
-zeta-mlx-api = {path = "packages/zeta-mlx-api", develop = true}
-zeta-mlx-cli = {path = "packages/zeta-mlx-cli", develop = true}
-zeta-mlx-rag = {path = "packages/zeta-mlx-rag", develop = true, optional = true}
-zeta-mlx-langchain = {path = "packages/zeta-mlx-langchain", develop = true, optional = true}
-zeta-mlx-embedding = {path = "packages/zeta-mlx-embedding", develop = true, optional = true}
+zeta-mlx-core = {path = "packages/core", develop = true}
+zeta-mlx-inference = {path = "packages/inference", develop = true}
+zeta-mlx-cli = {path = "packages/cli", develop = true}
+zeta-mlx-rag = {path = "packages/rag", develop = true, optional = true}
+zeta-mlx-langchain = {path = "packages/langchain", develop = true, optional = true}
+zeta-mlx-embedding = {path = "packages/embedding", develop = true, optional = true}
 
 [tool.poetry.extras]
 rag = ["zeta-mlx-rag"]
@@ -32,7 +31,7 @@ mypy = "^1.13"
 ruff = "^0.8"
 
 [tool.poetry.scripts]
-zeta-mlx = "zeta_mlx_cli:cli"
+zeta-mlx = "zeta_mlx.cli:cli"
 
 [build-system]
 requires = ["poetry-core"]

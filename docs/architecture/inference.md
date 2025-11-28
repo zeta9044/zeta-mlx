@@ -1,4 +1,4 @@
-# Inference 패키지 (zeta-mlx-inference)
+# Inference 패키지 (packages/inference)
 
 MLX 기반 추론 엔진입니다. I/O 경계에 위치하며, Core의 순수 타입을 사용합니다.
 
@@ -12,7 +12,7 @@ MLX 기반 추론 엔진입니다. I/O 경계에 위치하며, Core의 순수 �
 ## 모듈 구조
 
 ```
-zeta_mlx_inference/
+zeta_mlx/inference/
 ├── __init__.py       # Public API
 ├── engine.py         # 추론 엔진 (단일 모델)
 ├── manager.py        # 다중 모델 관리자 (LRU)
@@ -31,16 +31,16 @@ zeta_mlx_inference/
 from typing import Iterator, Callable
 from functools import partial
 
-from zeta_mlx_core import (
+from zeta_mlx.core import (
     Result, Success, Failure, Railway,
     Message, GenerationParams, InferenceResponse,
     GenerationError, TokenLimitError,
     validate_messages, check_token_limit,
     NonEmptyList,
 )
-from zeta_mlx_inference.loader import load_model, ModelBundle
-from zeta_mlx_inference.streaming import create_stream_generator
-from zeta_mlx_inference.tokenizer import count_tokens, apply_chat_template
+from zeta_mlx.inference.loader import load_model, ModelBundle
+from zeta_mlx.inference.streaming import create_stream_generator
+from zeta_mlx.inference.tokenizer import count_tokens, apply_chat_template
 
 
 # ============================================================
@@ -137,7 +137,7 @@ def create_mlx_generate(bundle: ModelBundle) -> GenerateFn:
 
 def create_mlx_stream(bundle: ModelBundle) -> StreamFn:
     """MLX 스트리밍 함수 생성"""
-    from zeta_mlx_inference.streaming import mlx_stream_generator
+    from zeta_mlx.inference.streaming import mlx_stream_generator
 
     def mlx_stream(prompt: str, params: GenerationParams) -> Iterator[str]:
         yield from mlx_stream_generator(
@@ -250,7 +250,7 @@ from dataclasses import dataclass
 from typing import Any
 from functools import lru_cache
 
-from zeta_mlx_core import Result, Success, Failure, ModelNotFoundError
+from zeta_mlx.core import Result, Success, Failure, ModelNotFoundError
 
 
 @dataclass(frozen=True)
@@ -264,7 +264,7 @@ class ModelBundle:
 def setup_custom_models() -> None:
     """커스텀 모델 등록"""
     import sys
-    from zeta_mlx_inference.custom_models import qwen3
+    from zeta_mlx.inference.custom_models import qwen3
 
     # MLX-LM이 찾을 수 있도록 등록
     sys.modules['mlx_lm.models.qwen3'] = qwen3
@@ -408,14 +408,14 @@ def chunk_stream(
 from dataclasses import dataclass
 from threading import Lock
 
-from zeta_mlx_core import (
+from zeta_mlx.core import (
     Result, Success, Failure,
     ModelsConfig, ModelDefinition,
     ModelNotFoundError, GenerationError,
     Message, GenerationParams, InferenceResponse,
 )
-from zeta_mlx_inference.loader import ModelBundle, load_model_safe
-from zeta_mlx_inference.engine import InferenceEngine
+from zeta_mlx.inference.loader import ModelBundle, load_model_safe
+from zeta_mlx.inference.engine import InferenceEngine
 
 
 @dataclass
@@ -585,7 +585,7 @@ def create_model_manager(config: ModelsConfig) -> ModelManager:
 
 def create_model_manager_from_yaml(config_path: str) -> Result[ModelManager, str]:
     """YAML 설정에서 모델 관리자 생성"""
-    from zeta_mlx_core import load_config
+    from zeta_mlx.core import load_config
 
     config_result = load_config(config_path)
     if isinstance(config_result, Failure):
@@ -597,8 +597,8 @@ def create_model_manager_from_yaml(config_path: str) -> Result[ModelManager, str
 ## 다중 모델 사용 예시
 
 ```python
-from zeta_mlx_core import load_config, Message, GenerationParams
-from zeta_mlx_inference import create_model_manager
+from zeta_mlx.core import load_config, Message, GenerationParams
+from zeta_mlx.inference import create_model_manager
 
 # 설정 로드
 config = load_config("config.yaml").unwrap_or_raise()
@@ -633,21 +633,21 @@ print(manager.list_loaded())  # ['qwen3-8b', 'qwen2.5-7b', ...]
 
 ```python
 """Zeta MLX Inference - MLX Integration Layer"""
-from zeta_mlx_inference.engine import (
+from zeta_mlx.inference.engine import (
     InferenceEngine,
     create_inference_workflow,
     # Function types
     GenerateFn, StreamFn, TokenCountFn, TemplateFn,
 )
-from zeta_mlx_inference.manager import (
+from zeta_mlx.inference.manager import (
     ModelManager, LoadedModel,
     create_model_manager, create_model_manager_from_yaml,
 )
-from zeta_mlx_inference.loader import (
+from zeta_mlx.inference.loader import (
     ModelBundle,
     load_model, load_model_safe, unload_model,
 )
-from zeta_mlx_inference.streaming import (
+from zeta_mlx.inference.streaming import (
     mlx_stream_generator, chunk_stream,
 )
 
@@ -675,11 +675,11 @@ __all__ = [
 ## 사용 예시
 
 ```python
-from zeta_mlx_core import (
+from zeta_mlx.core import (
     Message, GenerationParams, NonEmptyList,
     Temperature, TopP, MaxTokens,
 )
-from zeta_mlx_inference import InferenceEngine
+from zeta_mlx.inference import InferenceEngine
 
 # 엔진 생성
 engine = InferenceEngine("mlx-community/Qwen3-8B-4bit")

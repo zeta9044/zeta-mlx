@@ -1,11 +1,11 @@
-# LangChain 패키지 (zeta-mlx-langchain)
+# LangChain 패키지 (packages/langchain)
 
 LangChain 생태계와의 통합 어댑터입니다.
 
 ## 모듈 구조
 
 ```
-zeta_mlx_langchain/
+zeta_mlx/langchain/
 ├── __init__.py
 ├── chat_model.py     # BaseChatModel 구현
 ├── embeddings.py     # Embeddings 구현
@@ -27,12 +27,12 @@ from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResu
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from pydantic import Field
 
-from zeta_mlx_core import (
+from zeta_mlx.core import (
     Message, GenerationParams, NonEmptyList,
     Temperature, TopP, MaxTokens,
     Success, Failure,
 )
-from zeta_mlx_inference import InferenceEngine
+from zeta_mlx.inference import InferenceEngine
 
 
 class MLXChatModel(BaseChatModel):
@@ -158,7 +158,7 @@ from typing import List
 from langchain_core.embeddings import Embeddings
 from pydantic import Field
 
-from zeta_mlx_rag import create_sentence_transformer_embedder, EmbedFn
+from zeta_mlx.rag import create_sentence_transformer_embedder, EmbedFn
 
 
 class MLXEmbeddings(Embeddings):
@@ -202,7 +202,7 @@ from langchain_core.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 from pydantic import BaseModel, Field
 
-from zeta_mlx_inference import InferenceEngine
+from zeta_mlx.inference import InferenceEngine
 
 
 class TokenCountInput(BaseModel):
@@ -245,9 +245,9 @@ class TokenCountTool(BaseTool):
 
 ```python
 """Zeta MLX LangChain - LangChain Integration"""
-from zeta_mlx_langchain.chat_model import MLXChatModel
-from zeta_mlx_langchain.embeddings import MLXEmbeddings
-from zeta_mlx_langchain.tools import TokenCountTool
+from zeta_mlx.langchain.chat_model import MLXChatModel
+from zeta_mlx.langchain.embeddings import MLXEmbeddings
+from zeta_mlx.langchain.tools import TokenCountTool
 
 __version__ = "0.1.0"
 
@@ -263,7 +263,7 @@ __all__ = [
 ### 기본 채팅
 
 ```python
-from zeta_mlx_langchain import MLXChatModel
+from zeta_mlx.langchain import MLXChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
 llm = MLXChatModel(
@@ -307,7 +307,7 @@ result = chain.invoke({
 ### RAG Chain
 
 ```python
-from zeta_mlx_langchain import MLXChatModel, MLXEmbeddings
+from zeta_mlx.langchain import MLXChatModel, MLXEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_community.vectorstores import FAISS
@@ -338,7 +338,7 @@ result = rag_chain.invoke("What is the main feature?")
 ### Tool Calling Agent
 
 ```python
-from zeta_mlx_langchain import MLXChatModel
+from zeta_mlx.langchain import MLXChatModel
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
 

@@ -1,4 +1,4 @@
-# Core 패키지 (zeta-mlx-core)
+# Core 패키지 (packages/core)
 
 순수 도메인 레이어입니다. 외부 의존성이 없고 모든 함수가 순수합니다.
 
@@ -12,7 +12,7 @@
 ## 모듈 구조
 
 ```
-zeta_mlx_core/
+zeta_mlx/core/
 ├── __init__.py       # Public API 노출
 ├── types.py          # 도메인 타입
 ├── result.py         # Result[T, E], Railway
@@ -52,7 +52,7 @@ class Temperature:
     @classmethod
     def of(cls, value: float) -> 'Result[Self, str]':
         """검증된 Temperature 생성"""
-        from zeta_mlx_core.result import Success, Failure
+        from zeta_mlx.core.result import Success, Failure
         if 0.0 <= value <= 2.0:
             return Success(cls(value))
         return Failure(f"Temperature must be 0.0-2.0, got {value}")
@@ -148,7 +148,7 @@ class NonEmptyList[T]:
     @classmethod
     def of(cls, items: list[T]) -> 'Result[Self, str]':
         """리스트에서 생성 (검증 포함)"""
-        from zeta_mlx_core.result import Success, Failure
+        from zeta_mlx.core.result import Success, Failure
         if not items:
             return Failure("List cannot be empty")
         return Success(cls(head=items[0], tail=tuple(items[1:])))
@@ -455,11 +455,11 @@ def error_to_dict(error: InferenceError) -> dict:
 
 ```python
 """순수 검증 함수"""
-from zeta_mlx_core.types import (
+from zeta_mlx.core.types import (
     Message, GenerationParams, InferenceRequest, NonEmptyList
 )
-from zeta_mlx_core.result import Result, Success, Failure
-from zeta_mlx_core.errors import ValidationError, TokenLimitError
+from zeta_mlx.core.result import Result, Success, Failure
+from zeta_mlx.core.errors import ValidationError, TokenLimitError
 
 
 def validate_messages(
@@ -567,8 +567,8 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 import yaml
 
-from zeta_mlx_core.result import Result, Success, Failure
-from zeta_mlx_core.errors import ValidationError
+from zeta_mlx.core.result import Result, Success, Failure
+from zeta_mlx.core.errors import ValidationError
 
 
 # ============================================================
@@ -783,7 +783,7 @@ inference:
 
 ```python
 """Zeta MLX Core - Pure Domain Layer"""
-from zeta_mlx_core.types import (
+from zeta_mlx.core.types import (
     # Constrained Types
     Role, ModelName, TokenCount,
     Temperature, TopP, MaxTokens,
@@ -793,26 +793,26 @@ from zeta_mlx_core.types import (
     NonEmptyList,
     InferenceRequest, InferenceResponse, TokenUsage,
 )
-from zeta_mlx_core.result import (
+from zeta_mlx.core.result import (
     Result, Success, Failure,
     Railway,
     map_result, bind, map_error, tee,
     unwrap_or, unwrap_or_else,
     validate_all,
 )
-from zeta_mlx_core.errors import (
+from zeta_mlx.core.errors import (
     ValidationError, TokenLimitError,
     ModelNotFoundError, GenerationError,
     InferenceError,
     error_to_dict,
 )
-from zeta_mlx_core.validation import (
+from zeta_mlx.core.validation import (
     validate_messages, validate_params, check_token_limit,
 )
-from zeta_mlx_core.pipeline import (
+from zeta_mlx.core.pipeline import (
     pipe, compose, identity, const, curry2, flip,
 )
-from zeta_mlx_core.config import (
+from zeta_mlx.core.config import (
     ServerConfig, ModelDefinition, ModelsConfig, InferenceConfig, AppConfig,
     load_yaml, parse_config, load_config, merge_config,
 )

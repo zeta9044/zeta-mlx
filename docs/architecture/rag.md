@@ -1,11 +1,11 @@
-# RAG 패키지 (zeta-mlx-rag)
+# RAG 패키지 (packages/rag)
 
 Retrieval-Augmented Generation 파이프라인입니다.
 
 ## 모듈 구조
 
 ```
-zeta_mlx_rag/
+zeta_mlx/rag/
 ├── __init__.py
 ├── types.py          # RAG 도메인 타입
 ├── chunker.py        # 문서 청킹
@@ -77,7 +77,7 @@ class RAGContext:
 from typing import Iterator
 import uuid
 
-from zeta_mlx_rag.types import Document, Chunk, ChunkId
+from zeta_mlx.rag.types import Document, Chunk, ChunkId
 
 
 def chunk_document(
@@ -142,7 +142,7 @@ def chunk_documents(
 from typing import Iterator, Callable
 from functools import lru_cache
 
-from zeta_mlx_rag.types import Chunk, Embedding
+from zeta_mlx.rag.types import Chunk, Embedding
 
 
 # 임베딩 함수 타입
@@ -198,7 +198,7 @@ def embed_query(query: str, embed_fn: EmbedFn) -> tuple[float, ...]:
 """벡터 저장소 Protocol"""
 from typing import Protocol, Iterator
 
-from zeta_mlx_rag.types import Chunk, Embedding, SearchResult, CollectionName
+from zeta_mlx.rag.types import Chunk, Embedding, SearchResult, CollectionName
 
 
 class VectorStore(Protocol):
@@ -237,16 +237,16 @@ class VectorStore(Protocol):
 """RAG 파이프라인"""
 from typing import Callable
 
-from zeta_mlx_core import (
+from zeta_mlx.core import (
     Result, Success, Failure, Railway,
     Message, NonEmptyList,
 )
-from zeta_mlx_rag.types import (
+from zeta_mlx.rag.types import (
     Document, Chunk, SearchResult, RAGContext, CollectionName,
 )
-from zeta_mlx_rag.chunker import chunk_documents
-from zeta_mlx_rag.embedder import embed_chunks, embed_query, EmbedFn
-from zeta_mlx_rag.vectorstore.protocol import VectorStore
+from zeta_mlx.rag.chunker import chunk_documents
+from zeta_mlx.rag.embedder import embed_chunks, embed_query, EmbedFn
+from zeta_mlx.rag.vectorstore.protocol import VectorStore
 
 
 # ============================================================
@@ -358,18 +358,18 @@ def create_rag_prompt(context: RAGContext, question: str) -> list[Message]:
 
 ```python
 """Zeta MLX RAG - Retrieval-Augmented Generation"""
-from zeta_mlx_rag.types import (
+from zeta_mlx.rag.types import (
     Document, Chunk, Embedding, SearchResult, RAGContext,
     ChunkId, CollectionName,
 )
-from zeta_mlx_rag.chunker import chunk_document, chunk_documents
-from zeta_mlx_rag.embedder import (
+from zeta_mlx.rag.chunker import chunk_document, chunk_documents
+from zeta_mlx.rag.embedder import (
     embed_chunks, embed_query,
     create_sentence_transformer_embedder,
     EmbedFn,
 )
-from zeta_mlx_rag.vectorstore.protocol import VectorStore
-from zeta_mlx_rag.pipeline import (
+from zeta_mlx.rag.vectorstore.protocol import VectorStore
+from zeta_mlx.rag.pipeline import (
     create_index_pipeline,
     create_retrieve_pipeline,
     create_rag_prompt,

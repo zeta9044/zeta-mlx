@@ -1,11 +1,11 @@
-# CLI 패키지 (zeta-mlx-cli)
+# CLI 패키지 (packages/cli)
 
 Click 기반 CLI 도구입니다. 사용자와의 I/O 경계입니다.
 
 ## 모듈 구조
 
 ```
-zeta_mlx_cli/
+zeta_mlx/cli/
 ├── __init__.py
 ├── main.py           # CLI 진입점
 ├── commands/         # 명령어 그룹
@@ -24,8 +24,8 @@ zeta_mlx_cli/
 import click
 from pathlib import Path
 
-from zeta_mlx_core import AppConfig
-from zeta_mlx_cli.commands import serve, chat, rag, config as config_cmd
+from zeta_mlx.core import AppConfig
+from zeta_mlx.cli.commands import serve, chat, rag, config as config_cmd
 
 
 @click.group()
@@ -91,7 +91,7 @@ def serve(ctx: click.Context, host: str | None, port: int | None, model: str | N
         zeta-mlx serve --model mlx-community/Qwen3-8B-4bit
     """
     import uvicorn
-    from zeta_mlx_core import AppConfig
+    from zeta_mlx.core import AppConfig
     from zeta_mlx_api import create_app
 
     config: AppConfig = ctx.obj['config']
@@ -131,7 +131,7 @@ import click
 from rich.console import Console
 from rich.markdown import Markdown
 
-from zeta_mlx_core import (
+from zeta_mlx.core import (
     Message, GenerationParams, NonEmptyList,
     Temperature, TopP, MaxTokens,
     Success, Failure,
@@ -165,8 +165,8 @@ def chat(
         zeta-mlx chat --system "You are a poet"
         zeta-mlx chat  # 대화형 모드
     """
-    from zeta_mlx_core import AppConfig
-    from zeta_mlx_inference import InferenceEngine
+    from zeta_mlx.core import AppConfig
+    from zeta_mlx.inference import InferenceEngine
 
     config: AppConfig = ctx.obj['config']
     model_name = model or config.model.name
@@ -282,7 +282,7 @@ def _interactive_mode(
 
 ```python
 """Zeta MLX CLI"""
-from zeta_mlx_cli.main import cli
+from zeta_mlx.cli.main import cli
 
 __version__ = "0.1.0"
 

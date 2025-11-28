@@ -18,12 +18,12 @@ Apple Silicon MLX 기반 LLM 서빙 플랫폼의 함수형 아키텍처입니다
 zeta-mlx/
 ├── pyproject.toml                    # Workspace 루트
 ├── packages/
-│   ├── zeta-mlx-core/                 # 순수 도메인 (Pure)
-│   ├── zeta-mlx-inference/            # MLX 추론 + API (Impure)
-│   ├── zeta-mlx-embedding/            # 임베딩 서빙 + API (Impure)
-│   ├── zeta-mlx-cli/                  # CLI (Impure)
-│   ├── zeta-mlx-rag/                  # RAG 파이프라인 (Impure)
-│   └── zeta-mlx-langchain/            # LangChain 어댑터 (Impure)
+│   ├── core/                 # 순수 도메인 (Pure)
+│   ├── inference/            # MLX 추론 + API (Impure)
+│   ├── embedding/            # 임베딩 서빙 + API (Impure)
+│   ├── cli/                  # CLI (Impure)
+│   ├── rag/                  # RAG 파이프라인 (Impure)
+│   └── langchain/            # LangChain 어댑터 (Impure)
 └── docs/
     ├── design/                       # 함수형 디자인 원칙
     └── architecture/                 # 아키텍처 문서
@@ -71,12 +71,12 @@ zeta-mlx/
 
 | 패키지 | 레이어 | 책임 | 의존성 |
 |--------|--------|------|--------|
-| `zeta-mlx-core` | Domain (Pure) | 타입, Result, 순수 함수 | 없음 |
-| `zeta-mlx-inference` | Application | MLX 추론 엔진 + OpenAI 호환 API | core |
-| `zeta-mlx-embedding` | Application | 임베딩 엔진 + OpenAI 호환 API | core |
-| `zeta-mlx-rag` | Application | 문서 처리, 임베딩, 검색 | core |
-| `zeta-mlx-cli` | I/O Edge | Typer CLI | core, inference |
-| `zeta-mlx-langchain` | I/O Edge | LangChain 어댑터 | core, inference |
+| `core` | Domain (Pure) | 타입, Result, 순수 함수 | 없음 |
+| `inference` | Application | MLX 추론 엔진 + OpenAI 호환 API | core |
+| `embedding` | Application | 임베딩 엔진 + OpenAI 호환 API | core |
+| `rag` | Application | 문서 처리, 임베딩, 검색 | core |
+| `cli` | I/O Edge | Typer CLI | core, inference |
+| `langchain` | I/O Edge | LangChain 어댑터 | core, inference |
 
 ## 데이터 흐름
 

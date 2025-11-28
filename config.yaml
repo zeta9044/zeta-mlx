@@ -53,10 +53,22 @@ embedding_server:
 
 # 임베딩 모델 설정
 embedding_models:
-  default: minilm  # 기본 모델 별칭
+  default: bge-m3  # 기본 모델 별칭
   batch_size: 32   # 배치 크기
 
   available:
+    bge-m3:
+      path: BAAI/bge-m3
+      provider: sentence-transformers
+      dimension: 1024
+      description: "BGE-M3 - 한/영 혼용 최적, 다국어 고성능"
+
+    multilingual-e5-large:
+      path: intfloat/multilingual-e5-large
+      provider: sentence-transformers
+      dimension: 1024
+      description: "E5 Large - 다국어 고품질 임베딩"
+
     minilm:
       path: all-MiniLM-L6-v2
       provider: sentence-transformers
@@ -67,19 +79,19 @@ embedding_models:
       path: BAAI/bge-small-en-v1.5
       provider: sentence-transformers
       dimension: 384
-      description: "BGE Small - 고품질 검색"
+      description: "BGE Small - 고품질 검색 (영문)"
 
     bge-base:
       path: BAAI/bge-base-en-v1.5
       provider: sentence-transformers
       dimension: 768
-      description: "BGE Base - 균형잡힌 성능"
+      description: "BGE Base - 균형잡힌 성능 (영문)"
 
     multilingual:
       path: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
       provider: sentence-transformers
       dimension: 384
-      description: "다국어 임베딩 (한국어 포함)"
+      description: "다국어 경량 임베딩"
 
 # ============================================================
 # RAG 설정
@@ -91,6 +103,6 @@ rag:
   chunk_overlap: 50
   embedding:
     provider: sentence-transformers
-    model_name: all-MiniLM-L6-v2
-    dimension: 384
+    model_name: BAAI/bge-m3
+    dimension: 1024
     batch_size: 32

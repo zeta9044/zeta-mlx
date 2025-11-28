@@ -20,6 +20,14 @@ class ServerConfig(BaseModel):
     model_config = {"frozen": True}
 
 
+class EmbeddingServerConfig(BaseModel):
+    """임베딩 서버 설정"""
+    host: str = "0.0.0.0"
+    port: int = Field(default=9045, ge=1, le=65535)
+
+    model_config = {"frozen": True}
+
+
 # ============================================================
 # 모델 설정 (다중 모델 지원)
 # ============================================================
@@ -62,11 +70,50 @@ class ModelsConfig(BaseModel):
 
 
 # ============================================================
-# 임베딩 설정 (RAG용)
+# 임베딩 모델 설정 (다중 모델 지원)
 # ============================================================
 
+class EmbeddingModelDefinition(BaseModel):
+    """개별 임베딩 모델 정의"""
+    path: str  # HuggingFace 경로 또는 sentence-transformers 모델명
+    provider: Literal["sentence-transformers", "mlx"] = "sentence-transformers"
+    dimension: int = Field(default=384, ge=64, le=4096)
+    description: str = ""
+
+    model_config = {"frozen": True}
+
+
+class EmbeddingModelsConfig(BaseModel):
+    """다중 임베딩 모델 설정"""
+    default: str = "minilm"  # 기본 모델 별칭
+    max_loaded: int = Field(default=2, ge=1, le=8)  # 동시 로드 최대 수
+    batch_size: int = Field(default=32, ge=1, le=256)
+    available: dict[str, EmbeddingModelDefinition] = Field(default_factory=lambda: {
+        "minilm": EmbeddingModelDefinition(
+            path="all-MiniLM-L6-v2",
+            provider="sentence-transformers",
+            dimension=384,
+            description="MiniLM L6 - 빠른 범용 임베딩",
+        ),
+    })
+
+    model_config = {"frozen": True}
+
+    def get_model(self, alias: str) -> EmbeddingModelDefinition | None:
+        """별칭으로 모델 정의 조회"""
+        return self.available.get(alias)
+
+    def get_default_model(self) -> EmbeddingModelDefinition:
+        """기본 모델 정의 반환"""
+        return self.available[self.default]
+
+    def list_aliases(self) -> list[str]:
+        """사용 가능한 모델 별칭 목록"""
+        return list(self.available.keys())
+
+
 class EmbeddingConfig(BaseModel):
-    """임베딩 모델 설정"""
+    """임베딩 설정 (RAG용 - 레거시 호환)"""
     provider: Literal["simple", "sentence-transformers"] = "sentence-transformers"
     model_name: str = "all-MiniLM-L6-v2"
     dimension: int = Field(default=384, ge=64, le=4096)
@@ -121,6 +168,8 @@ class AppConfig(BaseModel):
     server: ServerConfig = Field(default_factory=ServerConfig)
     models: ModelsConfig = Field(default_factory=ModelsConfig)
     inference: InferenceConfig = Field(default_factory=InferenceConfig)
+    embedding_server: EmbeddingServerConfig = Field(default_factory=EmbeddingServerConfig)
+    embedding_models: EmbeddingModelsConfig = Field(default_factory=EmbeddingModelsConfig)
     rag: RAGConfig = Field(default_factory=RAGConfig)
 
     model_config = {"frozen": True}

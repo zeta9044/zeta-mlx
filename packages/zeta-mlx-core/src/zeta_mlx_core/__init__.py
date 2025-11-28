@@ -1,4 +1,4 @@
-"""MLX LLM Core - Pure Domain Layer"""
+"""Zeta MLX Core - Pure Domain Layer"""
 from zeta_mlx_core.types import (
     # Constrained Types
     Role, ModelName, TokenCount,
@@ -29,7 +29,10 @@ from zeta_mlx_core.pipeline import (
     pipe, compose, identity, const, curry2, flip,
 )
 from zeta_mlx_core.config import (
-    ServerConfig, ModelDefinition, ModelsConfig, InferenceConfig, AppConfig,
+    ServerConfig, EmbeddingServerConfig,
+    ModelDefinition, ModelsConfig,
+    EmbeddingModelDefinition, EmbeddingModelsConfig,
+    InferenceConfig, AppConfig,
     EmbeddingConfig, RAGConfig,
     load_yaml, parse_config, load_config, merge_config,
 )
@@ -57,7 +60,10 @@ __all__ = [
     # Pipeline
     "pipe", "compose", "identity", "const", "curry2", "flip",
     # Config
-    "ServerConfig", "ModelDefinition", "ModelsConfig", "InferenceConfig", "AppConfig",
+    "ServerConfig", "EmbeddingServerConfig",
+    "ModelDefinition", "ModelsConfig",
+    "EmbeddingModelDefinition", "EmbeddingModelsConfig",
+    "InferenceConfig", "AppConfig",
     "EmbeddingConfig", "RAGConfig",
     "load_yaml", "parse_config", "load_config", "merge_config",
 ]

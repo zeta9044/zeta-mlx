@@ -1,0 +1,98 @@
+# Zeta MLX Server 설정 파일
+# 사용하려면 config.yaml로 복사하세요: cp config.yaml.example config.yaml
+
+# ============================================================
+# LLM 서버 설정
+# ============================================================
+server:
+  host: 0.0.0.0
+  port: 9044
+
+# LLM 모델 설정
+models:
+  default: qwen3-4b  # 기본 모델 별칭
+  max_loaded: 2      # 동시 로드 최대 모델 수
+
+  available:
+    qwen3-8b:
+      path: mlx-community/Qwen3-8B-4bit
+      context_length: 32768
+      quantization: 4bit
+      description: "Qwen3 8B - 범용 대화"
+
+    qwen3-4b:
+      path: mlx-community/Qwen3-4B-4bit
+      context_length: 32768
+      quantization: 4bit
+      description: "Qwen3 4B - 경량 빠른 응답"
+
+    qwen2.5-7b:
+      path: mlx-community/Qwen2.5-7B-Instruct-4bit
+      context_length: 32768
+      quantization: 4bit
+      description: "Qwen2.5 7B - 긴 컨텍스트"
+
+    llama3.2-3b:
+      path: mlx-community/Llama-3.2-3B-Instruct-4bit
+      context_length: 8192
+      quantization: 4bit
+      description: "Llama 3.2 3B - 경량"
+
+# LLM 추론 기본 설정
+inference:
+  max_tokens: 2048
+  temperature: 0.7
+  top_p: 0.9
+  stop_sequences: []
+
+# ============================================================
+# 임베딩 서버 설정
+# ============================================================
+embedding_server:
+  host: 0.0.0.0
+  port: 9045
+
+# 임베딩 모델 설정
+embedding_models:
+  default: minilm  # 기본 모델 별칭
+  max_loaded: 2    # 동시 로드 최대 모델 수
+  batch_size: 32   # 배치 크기
+
+  available:
+    minilm:
+      path: all-MiniLM-L6-v2
+      provider: sentence-transformers
+      dimension: 384
+      description: "MiniLM L6 - 빠른 범용 임베딩"
+
+    bge-small:
+      path: BAAI/bge-small-en-v1.5
+      provider: sentence-transformers
+      dimension: 384
+      description: "BGE Small - 고품질 검색"
+
+    bge-base:
+      path: BAAI/bge-base-en-v1.5
+      provider: sentence-transformers
+      dimension: 768
+      description: "BGE Base - 균형잡힌 성능"
+
+    multilingual:
+      path: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+      provider: sentence-transformers
+      dimension: 384
+      description: "다국어 임베딩 (한국어 포함)"
+
+# ============================================================
+# RAG 설정
+# ============================================================
+rag:
+  top_k: 3
+  min_score: 0.0
+  chunk_size: 500
+  chunk_overlap: 50
+  embedding:
+    provider: sentence-transformers
+    model_name: all-MiniLM-L6-v2
+    dimension: 384
+    batch_size: 32

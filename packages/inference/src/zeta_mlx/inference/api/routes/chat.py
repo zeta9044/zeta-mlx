@@ -190,10 +190,16 @@ async def chat_completions(request: ChatRequestDTO) -> ChatResponseDTO | Streami
 
     generation_result = result.value
 
+    # 토큰 수 추정 (실제로는 engine에서 계산하는 것이 좋음)
+    # 영어/한글 혼합 기준 대략 4자당 1토큰
+    prompt_text = " ".join(m.content for m in domain_request.messages)
+    estimated_prompt_tokens = max(1, len(prompt_text) // 4)
+    estimated_completion_tokens = max(1, len(generation_result.content) // 4)
+
     return create_chat_response(
-        content=generation_result.text,
+        content=generation_result.content,
         model=model_alias,
-        prompt_tokens=generation_result.prompt_tokens,
-        completion_tokens=generation_result.completion_tokens,
-        finish_reason="stop",
+        prompt_tokens=estimated_prompt_tokens,
+        completion_tokens=estimated_completion_tokens,
+        finish_reason=generation_result.finish_reason,
     )

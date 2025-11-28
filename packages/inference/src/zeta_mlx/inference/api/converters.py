@@ -59,12 +59,12 @@ def chat_request_dto_to_domain(dto: ChatRequestDTO) -> Result[ChatRequest, Valid
         # Messages 변환
         messages = [message_dto_to_domain(m) for m in dto.messages]
 
-        # GenerationParams 생성
+        # GenerationParams 생성 (None은 기본값 사용)
         params = GenerationParams(
-            temperature=temperature,
-            top_p=top_p,
-            max_tokens=max_tokens,
-            stop=dto.stop,
+            temperature=temperature if temperature else Temperature.default(),
+            top_p=top_p if top_p else TopP.default(),
+            max_tokens=max_tokens if max_tokens else MaxTokens.default(),
+            stop_sequences=tuple(dto.stop) if dto.stop else (),
         )
 
         # ChatRequest 생성
@@ -81,7 +81,6 @@ def chat_request_dto_to_domain(dto: ChatRequestDTO) -> Result[ChatRequest, Valid
         return Failure(ValidationError(
             field="request",
             message=str(e),
-            value=None,
         ))
 
 

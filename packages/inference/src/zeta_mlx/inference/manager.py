@@ -1,6 +1,7 @@
 """모델 관리자 (단일 모델)"""
 from dataclasses import dataclass
 from threading import Lock
+from typing import Iterator
 
 from zeta_mlx.core import (
     Result, Success, Failure,
@@ -168,15 +169,15 @@ class ModelManager:
     def unload(self, alias: str) -> bool:
         """모델 명시적 언로드"""
         with self._lock:
-            if alias in self._loaded:
-                del self._loaded[alias]
+            if self._current and self._current.alias == alias:
+                self._current = None
                 return True
             return False
 
     def unload_all(self) -> None:
         """모든 모델 언로드"""
         with self._lock:
-            self._loaded.clear()
+            self._current = None
 
 
 # ============================================================

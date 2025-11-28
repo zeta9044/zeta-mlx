@@ -1,19 +1,19 @@
-# CLI 패키지 (mlx-llm-cli)
+# CLI 패키지 (zeta-mlx-cli)
 
 Click 기반 CLI 도구입니다. 사용자와의 I/O 경계입니다.
 
 ## 모듈 구조
 
 ```
-mlx_llm_cli/
+zeta_mlx_cli/
 ├── __init__.py
 ├── main.py           # CLI 진입점
 ├── commands/         # 명령어 그룹
 │   ├── __init__.py
-│   ├── serve.py      # mlx-llm serve
-│   ├── chat.py       # mlx-llm chat
-│   ├── rag.py        # mlx-llm rag
-│   └── config.py     # mlx-llm config
+│   ├── serve.py      # zeta-mlx serve
+│   ├── chat.py       # zeta-mlx chat
+│   ├── rag.py        # zeta-mlx rag
+│   └── config.py     # zeta-mlx config
 └── formatters.py     # Rich 출력
 ```
 
@@ -24,8 +24,8 @@ mlx_llm_cli/
 import click
 from pathlib import Path
 
-from mlx_llm_core import AppConfig
-from mlx_llm_cli.commands import serve, chat, rag, config as config_cmd
+from zeta_mlx_core import AppConfig
+from zeta_mlx_cli.commands import serve, chat, rag, config as config_cmd
 
 
 @click.group()
@@ -86,13 +86,13 @@ def serve(ctx: click.Context, host: str | None, port: int | None, model: str | N
     HTTP API 서버 실행
 
     예시:
-        mlx-llm serve
-        mlx-llm serve --port 8080
-        mlx-llm serve --model mlx-community/Qwen3-8B-4bit
+        zeta-mlx serve
+        zeta-mlx serve --port 8080
+        zeta-mlx serve --model mlx-community/Qwen3-8B-4bit
     """
     import uvicorn
-    from mlx_llm_core import AppConfig
-    from mlx_llm_api import create_app
+    from zeta_mlx_core import AppConfig
+    from zeta_mlx_api import create_app
 
     config: AppConfig = ctx.obj['config']
 
@@ -131,7 +131,7 @@ import click
 from rich.console import Console
 from rich.markdown import Markdown
 
-from mlx_llm_core import (
+from zeta_mlx_core import (
     Message, GenerationParams, NonEmptyList,
     Temperature, TopP, MaxTokens,
     Success, Failure,
@@ -161,12 +161,12 @@ def chat(
     대화형 채팅
 
     예시:
-        mlx-llm chat "Hello"
-        mlx-llm chat --system "You are a poet"
-        mlx-llm chat  # 대화형 모드
+        zeta-mlx chat "Hello"
+        zeta-mlx chat --system "You are a poet"
+        zeta-mlx chat  # 대화형 모드
     """
-    from mlx_llm_core import AppConfig
-    from mlx_llm_inference import InferenceEngine
+    from zeta_mlx_core import AppConfig
+    from zeta_mlx_inference import InferenceEngine
 
     config: AppConfig = ctx.obj['config']
     model_name = model or config.model.name
@@ -282,7 +282,7 @@ def _interactive_mode(
 
 ```python
 """MLX LLM CLI"""
-from mlx_llm_cli.main import cli
+from zeta_mlx_cli.main import cli
 
 __version__ = "0.1.0"
 
@@ -293,16 +293,16 @@ __all__ = ["cli"]
 
 ```bash
 # 서버 실행
-mlx-llm serve
-mlx-llm serve --port 8080 --model mlx-community/Qwen3-8B-4bit
+zeta-mlx serve
+zeta-mlx serve --port 8080 --model mlx-community/Qwen3-8B-4bit
 
 # 단일 채팅
-mlx-llm chat "Hello, how are you?"
-mlx-llm chat --system "You are a poet" "Write a haiku"
+zeta-mlx chat "Hello, how are you?"
+zeta-mlx chat --system "You are a poet" "Write a haiku"
 
 # 대화형 모드
-mlx-llm chat
+zeta-mlx chat
 
 # 설정 파일 사용
-mlx-llm --config ./config.yaml serve
+zeta-mlx --config ./config.yaml serve
 ```

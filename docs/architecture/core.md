@@ -1,4 +1,4 @@
-# Core 패키지 (mlx-llm-core)
+# Core 패키지 (zeta-mlx-core)
 
 순수 도메인 레이어입니다. 외부 의존성이 없고 모든 함수가 순수합니다.
 
@@ -12,7 +12,7 @@
 ## 모듈 구조
 
 ```
-mlx_llm_core/
+zeta_mlx_core/
 ├── __init__.py       # Public API 노출
 ├── types.py          # 도메인 타입
 ├── result.py         # Result[T, E], Railway
@@ -52,7 +52,7 @@ class Temperature:
     @classmethod
     def of(cls, value: float) -> 'Result[Self, str]':
         """검증된 Temperature 생성"""
-        from mlx_llm_core.result import Success, Failure
+        from zeta_mlx_core.result import Success, Failure
         if 0.0 <= value <= 2.0:
             return Success(cls(value))
         return Failure(f"Temperature must be 0.0-2.0, got {value}")
@@ -148,7 +148,7 @@ class NonEmptyList[T]:
     @classmethod
     def of(cls, items: list[T]) -> 'Result[Self, str]':
         """리스트에서 생성 (검증 포함)"""
-        from mlx_llm_core.result import Success, Failure
+        from zeta_mlx_core.result import Success, Failure
         if not items:
             return Failure("List cannot be empty")
         return Success(cls(head=items[0], tail=tuple(items[1:])))
@@ -455,11 +455,11 @@ def error_to_dict(error: InferenceError) -> dict:
 
 ```python
 """순수 검증 함수"""
-from mlx_llm_core.types import (
+from zeta_mlx_core.types import (
     Message, GenerationParams, InferenceRequest, NonEmptyList
 )
-from mlx_llm_core.result import Result, Success, Failure
-from mlx_llm_core.errors import ValidationError, TokenLimitError
+from zeta_mlx_core.result import Result, Success, Failure
+from zeta_mlx_core.errors import ValidationError, TokenLimitError
 
 
 def validate_messages(
@@ -567,8 +567,8 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 import yaml
 
-from mlx_llm_core.result import Result, Success, Failure
-from mlx_llm_core.errors import ValidationError
+from zeta_mlx_core.result import Result, Success, Failure
+from zeta_mlx_core.errors import ValidationError
 
 
 # ============================================================
@@ -696,7 +696,7 @@ def load_config(path: Path | str | None = None) -> Result[AppConfig, ValidationE
         default_paths = [
             Path("config.yaml"),
             Path("config.yml"),
-            Path.home() / ".config" / "mlx-llm" / "config.yaml",
+            Path.home() / ".config" / "zeta-mlx" / "config.yaml",
         ]
         for p in default_paths:
             if p.exists():
@@ -739,7 +739,7 @@ def merge_config(base: AppConfig, overrides: dict) -> AppConfig:
 
 ```yaml
 # MLX LLM Server 설정 파일
-# 위치: ./config.yaml 또는 ~/.config/mlx-llm/config.yaml
+# 위치: ./config.yaml 또는 ~/.config/zeta-mlx/config.yaml
 
 server:
   host: 0.0.0.0
@@ -785,7 +785,7 @@ inference:
 
 ```python
 """MLX LLM Core - Pure Domain Layer"""
-from mlx_llm_core.types import (
+from zeta_mlx_core.types import (
     # Constrained Types
     Role, ModelName, TokenCount,
     Temperature, TopP, MaxTokens,
@@ -795,26 +795,26 @@ from mlx_llm_core.types import (
     NonEmptyList,
     InferenceRequest, InferenceResponse, TokenUsage,
 )
-from mlx_llm_core.result import (
+from zeta_mlx_core.result import (
     Result, Success, Failure,
     Railway,
     map_result, bind, map_error, tee,
     unwrap_or, unwrap_or_else,
     validate_all,
 )
-from mlx_llm_core.errors import (
+from zeta_mlx_core.errors import (
     ValidationError, TokenLimitError,
     ModelNotFoundError, GenerationError,
     InferenceError,
     error_to_dict,
 )
-from mlx_llm_core.validation import (
+from zeta_mlx_core.validation import (
     validate_messages, validate_params, check_token_limit,
 )
-from mlx_llm_core.pipeline import (
+from zeta_mlx_core.pipeline import (
     pipe, compose, identity, const, curry2, flip,
 )
-from mlx_llm_core.config import (
+from zeta_mlx_core.config import (
     ServerConfig, ModelDefinition, ModelsConfig, InferenceConfig, AppConfig,
     load_yaml, parse_config, load_config, merge_config,
 )

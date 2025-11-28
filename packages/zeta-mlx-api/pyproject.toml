@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "zeta-mlx-api"
+version = "0.1.0"
+description = "FastAPI server for Zeta MLX"
+authors = ["ZetaLab <zeta9044@gmail.com>"]
+packages = [{include = "zeta_mlx_api", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.13"
+zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
+zeta-mlx-inference = {path = "../zeta-mlx-inference", develop = true}
+fastapi = "^0.115"
+uvicorn = {extras = ["standard"], version = "^0.32"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

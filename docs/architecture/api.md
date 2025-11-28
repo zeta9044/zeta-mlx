@@ -1,4 +1,4 @@
-# API 패키지 (mlx-llm-api)
+# API 패키지 (zeta-mlx-api)
 
 OpenAI 호환 HTTP API입니다. FastAPI 기반이며, DTO와 Domain을 명확히 분리합니다.
 
@@ -12,7 +12,7 @@ OpenAI 호환 HTTP API입니다. FastAPI 기반이며, DTO와 Domain을 명확�
 ## 모듈 구조
 
 ```
-mlx_llm_api/
+zeta_mlx_api/
 ├── __init__.py
 ├── app.py            # FastAPI 앱
 ├── routes/           # 라우트 핸들러
@@ -190,14 +190,14 @@ DTO <-> Domain 변환 (Anti-Corruption Layer)
 
 외부 세계(DTO)와 내부 세계(Domain)를 분리합니다.
 """
-from mlx_llm_core import (
+from zeta_mlx_core import (
     Result, Success, Failure,
     Message, GenerationParams, InferenceRequest, InferenceResponse,
     NonEmptyList, Temperature, TopP, MaxTokens, ModelName,
     ValidationError, InferenceError, error_to_dict,
 )
-from mlx_llm_api.dto.requests import ChatRequestDTO, MessageDTO
-from mlx_llm_api.dto.responses import (
+from zeta_mlx_api.dto.requests import ChatRequestDTO, MessageDTO
+from zeta_mlx_api.dto.responses import (
     ChatResponseDTO, ChoiceDTO, MessageResponseDTO, UsageDTO,
     ErrorResponseDTO, ErrorDetailDTO,
 )
@@ -352,14 +352,14 @@ from typing import AsyncIterator
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
-from mlx_llm_core import Success, Failure
-from mlx_llm_inference import ModelManager
-from mlx_llm_api.dto.requests import ChatRequestDTO
-from mlx_llm_api.dto.responses import (
+from zeta_mlx_core import Success, Failure
+from zeta_mlx_inference import ModelManager
+from zeta_mlx_api.dto.requests import ChatRequestDTO
+from zeta_mlx_api.dto.responses import (
     ChatResponseDTO, StreamResponseDTO, StreamChoiceDTO, DeltaDTO,
     ErrorResponseDTO,
 )
-from mlx_llm_api.converters import (
+from zeta_mlx_api.converters import (
     chat_request_to_domain,
     inference_response_to_dto,
     error_to_response_dto,
@@ -371,7 +371,7 @@ router = APIRouter(prefix="/v1", tags=["chat"])
 
 def get_model_manager() -> ModelManager:
     """모델 관리자 의존성 (app.state에서)"""
-    from mlx_llm_api.app import app
+    from zeta_mlx_api.app import app
     return app.state.model_manager
 
 
@@ -528,9 +528,9 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from mlx_llm_core import AppConfig, load_config, Success, Failure
-from mlx_llm_inference import ModelManager, create_model_manager
-from mlx_llm_api.routes import chat, models, health
+from zeta_mlx_core import AppConfig, load_config, Success, Failure
+from zeta_mlx_inference import ModelManager, create_model_manager
+from zeta_mlx_api.routes import chat, models, health
 
 
 @asynccontextmanager
@@ -617,8 +617,8 @@ app = create_app()
 import time
 from fastapi import APIRouter
 
-from mlx_llm_inference import ModelManager
-from mlx_llm_api.dto.responses import ModelsResponseDTO, ModelDTO
+from zeta_mlx_inference import ModelManager
+from zeta_mlx_api.dto.responses import ModelsResponseDTO, ModelDTO
 
 
 router = APIRouter(prefix="/v1", tags=["models"])
@@ -626,7 +626,7 @@ router = APIRouter(prefix="/v1", tags=["models"])
 
 def get_model_manager() -> ModelManager:
     """모델 관리자 의존성"""
-    from mlx_llm_api.app import app
+    from zeta_mlx_api.app import app
     return app.state.model_manager
 
 
@@ -649,7 +649,7 @@ async def list_models():
             models.append(ModelDTO(
                 id=alias,
                 created=created,
-                owned_by="mlx-llm",
+                owned_by="zeta-mlx",
                 # 추가 정보
                 object="model",
             ))
@@ -712,14 +712,14 @@ async def unload_model(model_alias: str):
 
 ```python
 """MLX LLM API - OpenAI Compatible HTTP API"""
-from mlx_llm_api.app import create_app, app
-from mlx_llm_api.dto.requests import ChatRequestDTO, TokenCountRequestDTO
-from mlx_llm_api.dto.responses import (
+from zeta_mlx_api.app import create_app, app
+from zeta_mlx_api.dto.requests import ChatRequestDTO, TokenCountRequestDTO
+from zeta_mlx_api.dto.responses import (
     ChatResponseDTO, StreamResponseDTO,
     ModelsResponseDTO, HealthResponseDTO,
     ErrorResponseDTO,
 )
-from mlx_llm_api.converters import (
+from zeta_mlx_api.converters import (
     chat_request_to_domain,
     inference_response_to_dto,
     error_to_response_dto,

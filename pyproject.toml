@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "mlx-llm"
+name = "zeta-mlx"
 version = "0.1.0"
 description = "MLX-based LLM Platform for Apple Silicon"
 authors = ["ZetaLab <zeta9044@gmail.com>"]
@@ -10,17 +10,19 @@ packages = []
 python = "^3.10,<3.13"
 
 # Workspace packages (path dependencies)
-mlx-llm-core = {path = "packages/mlx-llm-core", develop = true}
-mlx-llm-inference = {path = "packages/mlx-llm-inference", develop = true}
-mlx-llm-api = {path = "packages/mlx-llm-api", develop = true}
-mlx-llm-cli = {path = "packages/mlx-llm-cli", develop = true}
-mlx-llm-rag = {path = "packages/mlx-llm-rag", develop = true, optional = true}
-mlx-llm-langchain = {path = "packages/mlx-llm-langchain", develop = true, optional = true}
+zeta-mlx-core = {path = "packages/zeta-mlx-core", develop = true}
+zeta-mlx-inference = {path = "packages/zeta-mlx-inference", develop = true}
+zeta-mlx-api = {path = "packages/zeta-mlx-api", develop = true}
+zeta-mlx-cli = {path = "packages/zeta-mlx-cli", develop = true}
+zeta-mlx-rag = {path = "packages/zeta-mlx-rag", develop = true, optional = true}
+zeta-mlx-langchain = {path = "packages/zeta-mlx-langchain", develop = true, optional = true}
+zeta-mlx-embedding = {path = "packages/zeta-mlx-embedding", develop = true, optional = true}
 
 [tool.poetry.extras]
-rag = ["mlx-llm-rag"]
-langchain = ["mlx-llm-langchain"]
-all = ["mlx-llm-rag", "mlx-llm-langchain"]
+rag = ["zeta-mlx-rag"]
+langchain = ["zeta-mlx-langchain"]
+embedding = ["zeta-mlx-embedding"]
+all = ["zeta-mlx-rag", "zeta-mlx-langchain", "zeta-mlx-embedding"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3"
@@ -30,7 +32,7 @@ mypy = "^1.13"
 ruff = "^0.8"
 
 [tool.poetry.scripts]
-mlx-llm = "mlx_llm_cli:cli"
+zeta-mlx = "zeta_mlx_cli:cli"
 
 [build-system]
 requires = ["poetry-core"]

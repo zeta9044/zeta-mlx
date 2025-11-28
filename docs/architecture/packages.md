@@ -5,17 +5,17 @@ Poetry Workspace 기반 멀티 패키지 구조입니다.
 ## 디렉토리 레이아웃
 
 ```
-mlx-llm/
+zeta-mlx/
 ├── pyproject.toml                    # Workspace 루트
 ├── README.md
 ├── CLAUDE.md
 │
 ├── packages/
 │   │
-│   ├── mlx-llm-core/                 # ════════════════════════════
+│   ├── zeta-mlx-core/                 # ════════════════════════════
 │   │   ├── pyproject.toml            # 순수 도메인 레이어
 │   │   └── src/                      #
-│   │       └── mlx_llm_core/         # 타입, Result, 순수 함수
+│   │       └── zeta_mlx_core/         # 타입, Result, 순수 함수
 │   │           ├── __init__.py       # ════════════════════════════
 │   │           ├── types.py          # 도메인 타입 (Message, Params)
 │   │           ├── result.py         # Result[T, E], Railway
@@ -24,10 +24,10 @@ mlx-llm/
 │   │           ├── pipeline.py       # pipe, compose 유틸
 │   │           └── config.py         # 설정 타입 (Pydantic)
 │   │
-│   ├── mlx-llm-inference/            # ════════════════════════════
+│   ├── zeta-mlx-inference/            # ════════════════════════════
 │   │   ├── pyproject.toml            # MLX 추론 레이어
 │   │   └── src/                      #
-│   │       └── mlx_llm_inference/    # 모델 로딩, 생성, 스트리밍
+│   │       └── zeta_mlx_inference/    # 모델 로딩, 생성, 스트리밍
 │   │           ├── __init__.py       # ════════════════════════════
 │   │           ├── engine.py         # 추론 엔진 (generate 함수)
 │   │           ├── loader.py         # 모델 로더 (load_model 함수)
@@ -37,10 +37,10 @@ mlx-llm/
 │   │               ├── __init__.py
 │   │               └── qwen3.py
 │   │
-│   ├── mlx-llm-api/                  # ════════════════════════════
+│   ├── zeta-mlx-api/                  # ════════════════════════════
 │   │   ├── pyproject.toml            # HTTP API 레이어
 │   │   └── src/                      #
-│   │       └── mlx_llm_api/          # FastAPI, OpenAI 호환
+│   │       └── zeta_mlx_api/          # FastAPI, OpenAI 호환
 │   │           ├── __init__.py       # ════════════════════════════
 │   │           ├── app.py            # FastAPI 앱
 │   │           ├── routes/           # 라우트 핸들러
@@ -53,23 +53,23 @@ mlx-llm/
 │   │           ├── converters.py     # DTO <-> Domain 변환
 │   │           └── middleware.py     # CORS, 로깅
 │   │
-│   ├── mlx-llm-cli/                  # ════════════════════════════
+│   ├── zeta-mlx-cli/                  # ════════════════════════════
 │   │   ├── pyproject.toml            # CLI 레이어
 │   │   └── src/                      #
-│   │       └── mlx_llm_cli/          # Click 명령어
+│   │       └── zeta_mlx_cli/          # Click 명령어
 │   │           ├── __init__.py       # ════════════════════════════
 │   │           ├── main.py           # CLI 진입점
 │   │           ├── commands/         # 명령어 그룹
-│   │           │   ├── serve.py      # mlx-llm serve
-│   │           │   ├── chat.py       # mlx-llm chat
-│   │           │   ├── rag.py        # mlx-llm rag
-│   │           │   └── config.py     # mlx-llm config
+│   │           │   ├── serve.py      # zeta-mlx serve
+│   │           │   ├── chat.py       # zeta-mlx chat
+│   │           │   ├── rag.py        # zeta-mlx rag
+│   │           │   └── config.py     # zeta-mlx config
 │   │           └── formatters.py     # Rich 출력
 │   │
-│   ├── mlx-llm-rag/                  # ════════════════════════════
+│   ├── zeta-mlx-rag/                  # ════════════════════════════
 │   │   ├── pyproject.toml            # RAG 레이어
 │   │   └── src/                      #
-│   │       └── mlx_llm_rag/          # 문서 처리, 검색
+│   │       └── zeta_mlx_rag/          # 문서 처리, 검색
 │   │           ├── __init__.py       # ════════════════════════════
 │   │           ├── chunker.py        # 문서 청킹
 │   │           ├── embedder.py       # 임베딩 생성
@@ -80,10 +80,10 @@ mlx-llm/
 │   │               ├── base.py       # Protocol 정의
 │   │               └── faiss.py      # FAISS 구현
 │   │
-│   └── mlx-llm-langchain/            # ════════════════════════════
+│   └── zeta-mlx-langchain/            # ════════════════════════════
 │       ├── pyproject.toml            # LangChain 어댑터
 │       └── src/                      #
-│           └── mlx_llm_langchain/    # LangChain 통합
+│           └── zeta_mlx_langchain/    # LangChain 통합
 │               ├── __init__.py       # ════════════════════════════
 │               ├── chat_model.py     # BaseChatModel 구현
 │               ├── embeddings.py     # Embeddings 구현
@@ -106,7 +106,7 @@ mlx-llm/
 ```toml
 # /pyproject.toml
 [tool.poetry]
-name = "mlx-llm-workspace"
+name = "zeta-mlx-workspace"
 version = "0.1.0"
 description = "MLX LLM Platform Workspace"
 authors = ["ZetaLab <zeta@example.com>"]
@@ -124,24 +124,24 @@ ruff = "^0.8"
 # 워크스페이스 멤버 정의 (Poetry 1.2+)
 [tool.poetry.workspace]
 members = [
-    "packages/mlx-llm-core",
-    "packages/mlx-llm-inference",
-    "packages/mlx-llm-api",
-    "packages/mlx-llm-cli",
-    "packages/mlx-llm-rag",
-    "packages/mlx-llm-langchain",
+    "packages/zeta-mlx-core",
+    "packages/zeta-mlx-inference",
+    "packages/zeta-mlx-api",
+    "packages/zeta-mlx-cli",
+    "packages/zeta-mlx-rag",
+    "packages/zeta-mlx-langchain",
 ]
 ```
 
 ### Core 패키지
 
 ```toml
-# /packages/mlx-llm-core/pyproject.toml
+# /packages/zeta-mlx-core/pyproject.toml
 [tool.poetry]
-name = "mlx-llm-core"
+name = "zeta-mlx-core"
 version = "0.1.0"
 description = "Core types and pure functions for MLX LLM"
-packages = [{include = "mlx_llm_core", from = "src"}]
+packages = [{include = "zeta_mlx_core", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
@@ -153,16 +153,16 @@ pyyaml = "^6.0"
 ### Inference 패키지
 
 ```toml
-# /packages/mlx-llm-inference/pyproject.toml
+# /packages/zeta-mlx-inference/pyproject.toml
 [tool.poetry]
-name = "mlx-llm-inference"
+name = "zeta-mlx-inference"
 version = "0.1.0"
 description = "MLX inference engine"
-packages = [{include = "mlx_llm_inference", from = "src"}]
+packages = [{include = "zeta_mlx_inference", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
-mlx-llm-core = {path = "../mlx-llm-core", develop = true}
+zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
 mlx = "^0.21"
 mlx-lm = "^0.21"
 ```
@@ -170,17 +170,17 @@ mlx-lm = "^0.21"
 ### API 패키지
 
 ```toml
-# /packages/mlx-llm-api/pyproject.toml
+# /packages/zeta-mlx-api/pyproject.toml
 [tool.poetry]
-name = "mlx-llm-api"
+name = "zeta-mlx-api"
 version = "0.1.0"
 description = "FastAPI server for MLX LLM"
-packages = [{include = "mlx_llm_api", from = "src"}]
+packages = [{include = "zeta_mlx_api", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
-mlx-llm-core = {path = "../mlx-llm-core", develop = true}
-mlx-llm-inference = {path = "../mlx-llm-inference", develop = true}
+zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
+zeta-mlx-inference = {path = "../zeta-mlx-inference", develop = true}
 fastapi = "^0.115"
 uvicorn = {extras = ["standard"], version = "^0.32"}
 ```
@@ -188,38 +188,38 @@ uvicorn = {extras = ["standard"], version = "^0.32"}
 ### CLI 패키지
 
 ```toml
-# /packages/mlx-llm-cli/pyproject.toml
+# /packages/zeta-mlx-cli/pyproject.toml
 [tool.poetry]
-name = "mlx-llm-cli"
+name = "zeta-mlx-cli"
 version = "0.1.0"
 description = "CLI for MLX LLM"
-packages = [{include = "mlx_llm_cli", from = "src"}]
+packages = [{include = "zeta_mlx_cli", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
-mlx-llm-core = {path = "../mlx-llm-core", develop = true}
-mlx-llm-inference = {path = "../mlx-llm-inference", develop = true}
-mlx-llm-api = {path = "../mlx-llm-api", develop = true}
+zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
+zeta-mlx-inference = {path = "../zeta-mlx-inference", develop = true}
+zeta-mlx-api = {path = "../zeta-mlx-api", develop = true}
 click = "^8.1"
 rich = "^13.9"
 
 [tool.poetry.scripts]
-mlx-llm = "mlx_llm_cli.main:cli"
+zeta-mlx = "zeta_mlx_cli.main:cli"
 ```
 
 ### RAG 패키지
 
 ```toml
-# /packages/mlx-llm-rag/pyproject.toml
+# /packages/zeta-mlx-rag/pyproject.toml
 [tool.poetry]
-name = "mlx-llm-rag"
+name = "zeta-mlx-rag"
 version = "0.1.0"
 description = "RAG pipeline for MLX LLM"
-packages = [{include = "mlx_llm_rag", from = "src"}]
+packages = [{include = "zeta_mlx_rag", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
-mlx-llm-core = {path = "../mlx-llm-core", develop = true}
+zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
 faiss-cpu = "^1.8"
 sentence-transformers = "^3.3"
 ```
@@ -227,17 +227,17 @@ sentence-transformers = "^3.3"
 ### LangChain 패키지
 
 ```toml
-# /packages/mlx-llm-langchain/pyproject.toml
+# /packages/zeta-mlx-langchain/pyproject.toml
 [tool.poetry]
-name = "mlx-llm-langchain"
+name = "zeta-mlx-langchain"
 version = "0.1.0"
 description = "LangChain integration for MLX LLM"
-packages = [{include = "mlx_llm_langchain", from = "src"}]
+packages = [{include = "zeta_mlx_langchain", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
-mlx-llm-core = {path = "../mlx-llm-core", develop = true}
-mlx-llm-inference = {path = "../mlx-llm-inference", develop = true}
+zeta-mlx-core = {path = "../zeta-mlx-core", develop = true}
+zeta-mlx-inference = {path = "../zeta-mlx-inference", develop = true}
 langchain-core = "^0.3"
 ```
 
@@ -267,19 +267,19 @@ rag ──✗──► api           # 역방향 금지
 
 ```bash
 # 전체 워크스페이스 설치
-cd mlx-llm
+cd zeta-mlx
 poetry install
 
 # 특정 패키지만 설치
-cd packages/mlx-llm-core
+cd packages/zeta-mlx-core
 poetry install
 
 # 개발 모드로 전체 설치
 poetry install --all-extras
 
 # CLI 실행
-poetry run mlx-llm serve
-poetry run mlx-llm chat "Hello"
+poetry run zeta-mlx serve
+poetry run zeta-mlx chat "Hello"
 ```
 
 ## 패키지별 익스포트
@@ -287,12 +287,12 @@ poetry run mlx-llm chat "Hello"
 각 패키지는 `__init__.py`에서 public API만 노출합니다:
 
 ```python
-# mlx_llm_core/__init__.py
-from mlx_llm_core.types import Message, GenerationParams, Role
-from mlx_llm_core.result import Result, Success, Failure, Railway
-from mlx_llm_core.errors import ValidationError, InferenceError
-from mlx_llm_core.validation import validate_messages, validate_params
-from mlx_llm_core.pipeline import pipe, compose
+# zeta_mlx_core/__init__.py
+from zeta_mlx_core.types import Message, GenerationParams, Role
+from zeta_mlx_core.result import Result, Success, Failure, Railway
+from zeta_mlx_core.errors import ValidationError, InferenceError
+from zeta_mlx_core.validation import validate_messages, validate_params
+from zeta_mlx_core.pipeline import pipe, compose
 
 __all__ = [
     # Types

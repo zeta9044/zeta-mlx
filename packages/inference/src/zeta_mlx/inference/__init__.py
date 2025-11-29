@@ -2,6 +2,7 @@
 from zeta_mlx.inference.engine import (
     InferenceEngine,
     GenerateFn, StreamFn, TokenCountFn, TemplateFn,
+    parse_tool_calls,
 )
 from zeta_mlx.inference.manager import (
     ModelManager, LoadedModel,
@@ -20,6 +21,7 @@ __version__ = "0.1.0"
 __all__ = [
     # Engine (단일 모델)
     "InferenceEngine",
+    "parse_tool_calls",
     # Manager (다중 모델)
     "ModelManager",
     "LoadedModel",

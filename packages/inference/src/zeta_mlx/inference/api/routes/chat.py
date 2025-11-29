@@ -1,10 +1,11 @@
-"""Chat Completion 라우트 (다중 모델 지원)"""
+"""Chat Completion 라우트 (OpenAI 호환 Tool Calling 지원)"""
 import uuid
 from typing import AsyncGenerator
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-from zeta_mlx.core import Failure, Success
+from zeta_mlx.core import Failure, Success, ToolCall
 from zeta_mlx.inference import ModelManager
+from zeta_mlx.inference.engine import parse_tool_calls
 from zeta_mlx.inference.api.dto.requests import ChatRequestDTO
 from zeta_mlx.inference.api.dto.responses import ChatResponseDTO, ErrorResponseDTO
 from zeta_mlx.inference.api.converters import (
@@ -15,19 +16,15 @@ from zeta_mlx.inference.api.converters import (
 )
 
 router = APIRouter(prefix="/v1", tags=["chat"])
-
-# 모델 관리자 (의존성 주입으로 설정)
 _model_manager: ModelManager | None = None
 
 
 def set_model_manager(manager: ModelManager) -> None:
-    """모델 관리자 설정"""
     global _model_manager
     _model_manager = manager
 
 
 def get_model_manager() -> ModelManager | None:
-    """모델 관리자 조회"""
     return _model_manager
 
 
@@ -35,10 +32,8 @@ async def generate_stream(
     request: ChatRequestDTO,
     manager: ModelManager,
 ) -> AsyncGenerator[str, None]:
-    """스트리밍 응답 생성기"""
+    """스트리밍 응답 생성기 (vLLM 호환 tool calling)"""
     chunk_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
-
-    # 모델 별칭 해석
     model_alias = manager.resolve_alias(request.model)
 
     # 첫 번째 청크: role 설정
@@ -79,25 +74,79 @@ async def generate_stream(
         return
 
     engine = engine_result.value
+    has_tools = bool(domain_request.tools)
 
-    # 스트리밍 생성
     try:
-        for chunk_text in engine.stream(domain_request):
-            chunk = create_stream_chunk(
-                content=chunk_text,
+        if has_tools:
+            # tools가 있으면 버퍼링 후 파싱 (vLLM 호환)
+            collected_content = ""
+            for chunk_text in engine.stream(domain_request):
+                collected_content += chunk_text
+
+            # tool_call 태그 파싱
+            clean_content, tool_calls = parse_tool_calls(collected_content)
+
+            if tool_calls:
+                # tool_calls가 있으면 content는 null, tool_calls만 반환
+                for i, tc in enumerate(tool_calls):
+                    tool_chunk = create_stream_chunk(
+                        content=None,
+                        model=model_alias,
+                        chunk_id=chunk_id,
+                        tool_calls=[{
+                            "index": i,
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {
+                                "name": tc.function_name,
+                                "arguments": tc.function_arguments,
+                            }
+                        }]
+                    )
+                    yield f"data: {tool_chunk.model_dump_json()}\n\n"
+
+                final_chunk = create_stream_chunk(
+                    content=None,
+                    model=model_alias,
+                    chunk_id=chunk_id,
+                    finish_reason="tool_calls",
+                )
+                yield f"data: {final_chunk.model_dump_json()}\n\n"
+            else:
+                # tool_calls가 없으면 clean_content 반환
+                if clean_content:
+                    content_chunk = create_stream_chunk(
+                        content=clean_content,
+                        model=model_alias,
+                        chunk_id=chunk_id,
+                    )
+                    yield f"data: {content_chunk.model_dump_json()}\n\n"
+
+                final_chunk = create_stream_chunk(
+                    content=None,
+                    model=model_alias,
+                    chunk_id=chunk_id,
+                    finish_reason="stop",
+                )
+                yield f"data: {final_chunk.model_dump_json()}\n\n"
+        else:
+            # tools가 없으면 일반 스트리밍
+            for chunk_text in engine.stream(domain_request):
+                chunk = create_stream_chunk(
+                    content=chunk_text,
+                    model=model_alias,
+                    chunk_id=chunk_id,
+                )
+                yield f"data: {chunk.model_dump_json()}\n\n"
+
+            final_chunk = create_stream_chunk(
+                content=None,
                 model=model_alias,
                 chunk_id=chunk_id,
+                finish_reason="stop",
             )
-            yield f"data: {chunk.model_dump_json()}\n\n"
+            yield f"data: {final_chunk.model_dump_json()}\n\n"
 
-        # 마지막 청크: finish_reason
-        final_chunk = create_stream_chunk(
-            content=None,
-            model=model_alias,
-            chunk_id=chunk_id,
-            finish_reason="stop",
-        )
-        yield f"data: {final_chunk.model_dump_json()}\n\n"
         yield "data: [DONE]\n\n"
 
     except Exception as e:
@@ -117,21 +166,10 @@ async def generate_stream(
     responses={400: {"model": ErrorResponseDTO}},
 )
 async def chat_completions(request: ChatRequestDTO) -> ChatResponseDTO | StreamingResponse:
-    """
-    OpenAI 호환 Chat Completion 엔드포인트 (다중 모델)
-
-    model 필드:
-    - 빈 문자열 또는 생략: 기본 모델 사용
-    - 모델 별칭: "qwen3-8b", "qwen2.5-7b" 등
-    - HuggingFace 경로: "mlx-community/Qwen3-8B-4bit"
-    """
+    """OpenAI 호환 Chat Completion 엔드포인트 (Tool Calling 지원)"""
     if _model_manager is None:
-        raise HTTPException(
-            status_code=503,
-            detail="Model manager not initialized",
-        )
+        raise HTTPException(status_code=503, detail="Model manager not initialized")
 
-    # 모델 별칭 해석
     model_alias = _model_manager.resolve_alias(request.model)
 
     # 스트리밍 모드
@@ -161,7 +199,6 @@ async def chat_completions(request: ChatRequestDTO) -> ChatResponseDTO | Streami
 
     domain_request = domain_result.value
 
-    # 모델 엔진 가져오기
     engine_result = _model_manager.get_engine(model_alias)
     if isinstance(engine_result, Failure):
         raise HTTPException(
@@ -174,8 +211,6 @@ async def chat_completions(request: ChatRequestDTO) -> ChatResponseDTO | Streami
         )
 
     engine = engine_result.value
-
-    # 추론 실행
     result = engine.generate(domain_request)
 
     if isinstance(result, Failure):
@@ -190,16 +225,20 @@ async def chat_completions(request: ChatRequestDTO) -> ChatResponseDTO | Streami
 
     generation_result = result.value
 
-    # 토큰 수 추정 (실제로는 engine에서 계산하는 것이 좋음)
-    # 영어/한글 혼합 기준 대략 4자당 1토큰
-    prompt_text = " ".join(m.content for m in domain_request.messages)
+    # 토큰 수 추정
+    prompt_text = " ".join(m.content or "" for m in domain_request.messages)
     estimated_prompt_tokens = max(1, len(prompt_text) // 4)
-    estimated_completion_tokens = max(1, len(generation_result.content) // 4)
+    estimated_completion_tokens = max(1, len(generation_result.content or "") // 4)
+
+    # Tool calls 변환: tool_calls가 있으면 content는 null
+    tool_calls = list(generation_result.tool_calls) if generation_result.tool_calls else None
+    content = None if tool_calls else generation_result.content
 
     return create_chat_response(
-        content=generation_result.content,
+        content=content,
         model=model_alias,
         prompt_tokens=estimated_prompt_tokens,
         completion_tokens=estimated_completion_tokens,
         finish_reason=generation_result.finish_reason,
+        tool_calls=tool_calls,
     )

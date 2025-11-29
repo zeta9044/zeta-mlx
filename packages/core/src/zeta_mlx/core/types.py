@@ -1,16 +1,11 @@
 """도메인 타입 정의 (불변, 검증됨)"""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal, NewType, Self, Generic, TypeVar
+import json
 
 T = TypeVar('T')
 
-# ============================================================
-# Constrained Types (값 제약)
-# ============================================================
-
 Role = Literal["system", "user", "assistant", "tool"]
-
-# NewType으로 의미 부여
 ModelName = NewType('ModelName', str)
 TokenCount = NewType('TokenCount', int)
 
@@ -30,7 +25,6 @@ class Temperature:
 
     @classmethod
     def create(cls, value: float) -> 'Result[Temperature, str]':
-        """검증 후 생성"""
         from zeta_mlx.core.result import Success, Failure
         if not 0.0 <= value <= 2.0:
             return Failure(f"Temperature must be 0.0-2.0, got {value}")
@@ -50,6 +44,13 @@ class TopP:
     def default(cls) -> Self:
         return cls(0.9)
 
+    @classmethod
+    def create(cls, value: float) -> 'Result[TopP, str]':
+        from zeta_mlx.core.result import Success, Failure
+        if not 0.0 <= value <= 1.0:
+            return Failure(f"TopP must be 0.0-1.0, got {value}")
+        return Success(cls(value))
+
 
 @dataclass(frozen=True)
 class MaxTokens:
@@ -66,23 +67,20 @@ class MaxTokens:
 
     @classmethod
     def create(cls, value: int) -> 'Result[MaxTokens, str]':
-        """검증 후 생성"""
         from zeta_mlx.core.result import Success, Failure
         if not 1 <= value <= 32768:
             return Failure(f"MaxTokens must be 1-32768, got {value}")
         return Success(cls(value))
 
 
-# ============================================================
-# AND Types (Product Types)
-# ============================================================
-
 @dataclass(frozen=True)
 class Message:
-    """대화 메시지"""
+    """대화 메시지 (OpenAI 호환)"""
     role: Role
-    content: str
-    name: str | None = None  # Tool 호출 시
+    content: str | None = None  # tool_call assistant message는 content가 null
+    name: str | None = None
+    tool_call_id: str | None = None
+    tool_calls: tuple['ToolCall', ...] = ()  # assistant의 tool calls
 
 
 @dataclass(frozen=True)
@@ -103,24 +101,59 @@ class GenerationParams:
 
 
 @dataclass(frozen=True)
-class ToolDefinition:
-    """도구 정의"""
+class ToolFunction:
+    """도구 함수 정의"""
     name: str
     description: str
-    parameters: dict
+    parameters: dict = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class ToolDefinition:
+    """도구 정의 (OpenAI 호환)"""
+    type: Literal["function"] = "function"
+    function: ToolFunction = field(default_factory=lambda: ToolFunction("", "", {}))
+
+    @classmethod
+    def create(cls, name: str, description: str, parameters: dict | None = None) -> 'ToolDefinition':
+        return cls(
+            type="function",
+            function=ToolFunction(
+                name=name,
+                description=description,
+                parameters=parameters or {},
+            )
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type,
+            "function": {
+                "name": self.function.name,
+                "description": self.function.description,
+                "parameters": self.function.parameters,
+            }
+        }
 
 
 @dataclass(frozen=True)
 class ToolCall:
-    """도구 호출"""
+    """도구 호출 (OpenAI 호환)"""
     id: str
-    name: str
-    arguments: str  # JSON string
+    type: Literal["function"] = "function"
+    function_name: str = ""
+    function_arguments: str = ""
 
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "type": self.type,
+            "function": {
+                "name": self.function_name,
+                "arguments": self.function_arguments,
+            }
+        }
 
-# ============================================================
-# NonEmpty Collections
-# ============================================================
 
 @dataclass(frozen=True)
 class NonEmptyList(Generic[T]):
@@ -130,7 +163,6 @@ class NonEmptyList(Generic[T]):
 
     @classmethod
     def of(cls, items: list[T]) -> 'Result[NonEmptyList[T], str]':
-        """리스트에서 생성 (검증 포함)"""
         from zeta_mlx.core.result import Success, Failure
         if not items:
             return Failure("List cannot be empty")
@@ -147,17 +179,15 @@ class NonEmptyList(Generic[T]):
         yield from self.tail
 
 
-# ============================================================
-# Request/Response Types
-# ============================================================
-
 @dataclass(frozen=True)
 class ChatRequest:
-    """간단한 채팅 요청 (CLI/직접 사용용)"""
+    """채팅 요청 (OpenAI 호환 tool calling 지원)"""
     model: str
     messages: list[Message]
     params: GenerationParams
     stream: bool = False
+    tools: tuple[ToolDefinition, ...] = ()
+    tool_choice: str | None = None
 
 
 @dataclass(frozen=True)
@@ -189,5 +219,4 @@ class TokenUsage:
         return TokenCount(self.prompt_tokens + self.completion_tokens)
 
 
-# Forward reference resolution
-from zeta_mlx.core.result import Result  # noqa: E402
+from zeta_mlx.core.result import Result

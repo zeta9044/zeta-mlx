@@ -1,13 +1,26 @@
-"""응답 DTO (외부 세계로 전송)"""
+"""응답 DTO (OpenAI 호환 Tool Calling 지원)"""
 from typing import Literal
 from pydantic import BaseModel
+
+
+class FunctionCallDTO(BaseModel):
+    """함수 호출 DTO"""
+    name: str
+    arguments: str
+
+
+class ToolCallDTO(BaseModel):
+    """도구 호출 DTO (OpenAI 호환)"""
+    id: str
+    type: Literal["function"] = "function"
+    function: FunctionCallDTO
 
 
 class MessageResponseDTO(BaseModel):
     """메시지 응답 DTO"""
     role: Literal["assistant"] = "assistant"
     content: str | None = None
-    tool_calls: list[dict] | None = None
+    tool_calls: list[ToolCallDTO] | None = None
 
 
 class ChoiceDTO(BaseModel):
@@ -34,10 +47,19 @@ class ChatResponseDTO(BaseModel):
     usage: UsageDTO | None = None
 
 
+class ToolCallDeltaDTO(BaseModel):
+    """스트리밍 도구 호출 델타 DTO"""
+    index: int
+    id: str | None = None
+    type: Literal["function"] | None = None
+    function: dict | None = None
+
+
 class DeltaDTO(BaseModel):
     """스트리밍 델타 DTO"""
     role: str | None = None
     content: str | None = None
+    tool_calls: list[ToolCallDeltaDTO] | None = None
 
 
 class StreamChoiceDTO(BaseModel):

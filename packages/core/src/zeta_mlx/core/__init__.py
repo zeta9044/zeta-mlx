@@ -5,7 +5,7 @@ from zeta_mlx.core.types import (
     Temperature, TopP, MaxTokens,
     # Domain Types
     Message, GenerationParams,
-    ToolDefinition, ToolCall,
+    ToolFunction, ToolDefinition, ToolCall,
     NonEmptyList,
     ChatRequest, InferenceRequest, InferenceResponse, TokenUsage,
 )
@@ -44,7 +44,7 @@ __all__ = [
     "Role", "ModelName", "TokenCount",
     "Temperature", "TopP", "MaxTokens",
     "Message", "GenerationParams",
-    "ToolDefinition", "ToolCall",
+    "ToolFunction", "ToolDefinition", "ToolCall",
     "NonEmptyList",
     "ChatRequest", "InferenceRequest", "InferenceResponse", "TokenUsage",
     # Result

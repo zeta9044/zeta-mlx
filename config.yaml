@@ -10,7 +10,7 @@ server:
 
 # LLM 모델 설정
 models:
-  default: qwen3-4b  # 기본 모델 별칭
+  default: qwen3-8b  # 기본 모델 별칭
 
   available:
     qwen3-8b:

@@ -7,7 +7,7 @@ packages = [{include = "zeta_mlx", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
-zeta-mlx-core = {path = "../core", develop = true}
+zeta-mlx-core = "^0.1.0"
 numpy = "^1.26"
 sentence-transformers = {version = "^3.0", optional = true}
 fastapi = "^0.115"

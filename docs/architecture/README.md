@@ -72,7 +72,7 @@ zeta-mlx/
 | 패키지 | 레이어 | 책임 | 의존성 |
 |--------|--------|------|--------|
 | `core` | Domain (Pure) | 타입, Result, 순수 함수 | 없음 |
-| `inference` | Application | MLX 추론 엔진 + OpenAI 호환 API | core |
+| `inference` | Application | MLX 추론 엔진 + OpenAI/vLLM 호환 API | core |
 | `embedding` | Application | 임베딩 엔진 + OpenAI 호환 API | core |
 | `rag` | Application | 문서 처리, 임베딩, 검색 | core |
 | `cli` | I/O Edge | Typer CLI | core, inference |

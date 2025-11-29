@@ -38,7 +38,7 @@ zeta-mlx/
 │   │               ├── custom_models/# 커스텀 모델 (Qwen3 등)
 │   │               │   ├── __init__.py
 │   │               │   └── qwen3.py
-│   │               └── api/          # OpenAI 호환 API
+│   │               └── api/          # OpenAI/vLLM 호환 API
 │   │                   ├── __init__.py
 │   │                   ├── app.py    # FastAPI 앱
 │   │                   ├── converters.py # DTO <-> Domain 변환
@@ -46,9 +46,10 @@ zeta-mlx/
 │   │                   │   ├── requests.py
 │   │                   │   └── responses.py
 │   │                   └── routes/   # 라우트
-│   │                       ├── chat.py   # /v1/chat/completions
-│   │                       ├── models.py # /v1/models
-│   │                       └── health.py # /health
+│   │                       ├── chat.py     # /v1/chat/completions
+│   │                       ├── models.py   # /v1/models
+│   │                       ├── tokenize.py # /tokenize, /detokenize (vLLM)
+│   │                       └── health.py   # /health
 │   │
 │   ├── embedding/                    # ════════════════════════════
 │   │   ├── pyproject.toml            # 임베딩 + API 레이어

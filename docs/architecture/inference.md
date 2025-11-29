@@ -19,9 +19,21 @@ zeta_mlx/inference/
 ├── loader.py         # 모델 로더
 ├── streaming.py      # 스트리밍 Generator
 ├── tokenizer.py      # 토큰 카운터
-└── custom_models/    # 커스텀 모델
+├── custom_models/    # 커스텀 모델
+│   ├── __init__.py
+│   └── qwen3.py
+└── api/              # OpenAI/vLLM 호환 API
     ├── __init__.py
-    └── qwen3.py
+    ├── app.py        # FastAPI 앱
+    ├── converters.py # DTO <-> Domain 변환
+    ├── dto/          # Data Transfer Objects
+    │   ├── requests.py
+    │   └── responses.py
+    └── routes/       # API 라우트
+        ├── chat.py     # /v1/chat/completions
+        ├── models.py   # /v1/models
+        ├── tokenize.py # /tokenize, /detokenize (vLLM 호환)
+        └── health.py   # /health
 ```
 
 ## engine.py - 추론 엔진
@@ -708,4 +720,56 @@ match result:
 # 스트리밍
 for chunk in engine.stream(messages, params):
     print(chunk, end="", flush=True)
+```
+
+## Tokenize API (vLLM 호환)
+
+v0.3.0에서 추가된 vLLM 호환 토큰화 API입니다.
+
+### 엔드포인트
+
+| 엔드포인트 | 메서드 | 설명 |
+|-----------|--------|------|
+| `/tokenize` | POST | 텍스트를 토큰으로 변환 |
+| `/detokenize` | POST | 토큰을 텍스트로 변환 |
+
+### 요청/응답 형식
+
+```python
+# POST /tokenize
+class TokenizeRequest(BaseModel):
+    model: str | None = None        # 모델 별칭 (선택)
+    prompt: str                     # 토큰화할 텍스트
+    add_special_tokens: bool = True # 특수 토큰 추가 여부
+
+class TokenizeResponse(BaseModel):
+    tokens: list[int]     # 토큰 ID 리스트
+    count: int            # 토큰 개수
+    max_model_len: int    # 모델 최대 컨텍스트 길이
+
+# POST /detokenize
+class DetokenizeRequest(BaseModel):
+    model: str | None = None  # 모델 별칭 (선택)
+    tokens: list[int]         # 토큰 ID 리스트
+
+class DetokenizeResponse(BaseModel):
+    prompt: str  # 디코딩된 텍스트
+```
+
+### 사용 예시
+
+```bash
+# Tokenize
+curl -X POST http://localhost:9044/tokenize \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Hello, world!", "add_special_tokens": true}'
+
+# Response: {"tokens": [9707, 11, 1917, 0], "count": 4, "max_model_len": 32768}
+
+# Detokenize
+curl -X POST http://localhost:9044/detokenize \
+  -H "Content-Type: application/json" \
+  -d '{"tokens": [9707, 11, 1917, 0]}'
+
+# Response: {"prompt": "Hello, world!"}
 ```

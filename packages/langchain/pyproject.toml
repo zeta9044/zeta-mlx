@@ -1,14 +1,27 @@
 [tool.poetry]
 name = "zeta-mlx-langchain"
-version = "0.1.0"
+version = "0.3.2"
 description = "LangChain integration for Zeta MLX"
 authors = ["ZetaLab <zeta9044@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/zeta9044/zeta-mlx"
+repository = "https://github.com/zeta9044/zeta-mlx"
+keywords = ["mlx", "langchain", "llm", "apple-silicon"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 packages = [{include = "zeta_mlx", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
-zeta-mlx-core = "^0.1.0"
-zeta-mlx-inference = "^0.1.0"
+zeta-mlx-core = "^0.3.2"
+zeta-mlx-inference = "^0.3.2"
 langchain-core = "^1.1"
 
 [build-system]

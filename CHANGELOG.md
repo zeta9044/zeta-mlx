@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- PyPI 패키지 배포 (zeta-mlx-core, zeta-mlx-inference, zeta-mlx-embedding, zeta-mlx-cli, zeta-mlx-rag, zeta-mlx-langchain)
+- GitHub Release 자동화 (gh CLI)
+
+### Changed
+- 패키지 의존성을 PyPI 버전으로 변경 (배포용)
+
 ## [0.3.0] - 2025-11-29
 
 ### Added

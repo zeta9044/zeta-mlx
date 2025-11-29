@@ -7,9 +7,9 @@ packages = [{include = "zeta_mlx", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
-zeta-mlx-core = {path = "../core", develop = true}
-zeta-mlx-inference = {path = "../inference", develop = true}
-zeta-mlx-embedding = {path = "../embedding", develop = true}
+zeta-mlx-core = "^0.1.0"
+zeta-mlx-inference = "^0.1.0"
+zeta-mlx-embedding = "^0.1.0"
 typer = {extras = ["all"], version = "^0.16"}
 rich = "^13.7"
 

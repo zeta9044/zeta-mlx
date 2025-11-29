@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2025-11-29
+
+### Added
+- README.md for each package (PyPI documentation)
+- PyPI metadata (homepage, repository, keywords, classifiers)
+
 ## [0.3.1] - 2025-11-29
 
 ### Added
@@ -62,7 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Functional design documentation
 - MLX LLM Server 초기 구현
 
-[Unreleased]: https://github.com/zeta9044/zeta-mlx/compare/0.3.1...HEAD
+[Unreleased]: https://github.com/zeta9044/zeta-mlx/compare/0.3.2...HEAD
+[0.3.2]: https://github.com/zeta9044/zeta-mlx/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/zeta9044/zeta-mlx/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/zeta9044/zeta-mlx/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/zeta9044/zeta-mlx/compare/0.1.0...0.2.0

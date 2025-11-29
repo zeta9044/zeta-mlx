@@ -1,8 +1,21 @@
 [tool.poetry]
 name = "zeta-mlx-core"
-version = "0.3.1"
+version = "0.3.2"
 description = "Core types and pure functions for Zeta MLX"
 authors = ["ZetaLab <zeta9044@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/zeta9044/zeta-mlx"
+repository = "https://github.com/zeta9044/zeta-mlx"
+keywords = ["mlx", "llm", "apple-silicon", "inference"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 packages = [{include = "zeta_mlx", from = "src"}]
 
 [tool.poetry.dependencies]

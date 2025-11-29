@@ -5,6 +5,7 @@ Apple Silicon에서 MLX 기반 LLM/임베딩 추론을 위한 OpenAI 호환 플�
 ## 특징
 
 - **OpenAI 호환 API**: `/v1/chat/completions`, `/v1/embeddings` 엔드포인트 제공
+- **vLLM 호환 API**: `/tokenize`, `/detokenize` 엔드포인트 제공
 - **Apple Silicon 최적화**: MLX 프레임워크 기반 네이티브 성능
 - **단일 모델 로딩**: 메모리 효율적인 모델 관리 (서버당 1개 모델)
 - **다국어 임베딩**: BGE-M3 등 한/영 혼용 지원 (1024 차원)
@@ -96,6 +97,25 @@ curl -X POST http://localhost:9045/v1/embeddings \
   -d '{
     "model": "bge-m3",
     "input": ["안녕하세요", "Hello"]
+  }'
+```
+
+**Tokenize (vLLM 호환):**
+```bash
+curl -X POST http://localhost:9044/tokenize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Hello, world!",
+    "add_special_tokens": true
+  }'
+```
+
+**Detokenize (vLLM 호환):**
+```bash
+curl -X POST http://localhost:9044/detokenize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tokens": [9707, 11, 1917, 0]
   }'
 ```
 

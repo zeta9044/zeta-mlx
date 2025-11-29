@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zeta-mlx-core"
-version = "0.1.0"
+version = "0.3.1"
 description = "Core types and pure functions for Zeta MLX"
 authors = ["ZetaLab <zeta9044@gmail.com>"]
 packages = [{include = "zeta_mlx", from = "src"}]

@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "zeta-mlx-rag"
-version = "0.1.0"
+version = "0.3.1"
 description = "RAG (Retrieval-Augmented Generation) for Zeta MLX"
 authors = ["ZetaLab <zeta9044@gmail.com>"]
 packages = [{include = "zeta_mlx", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.13"
-zeta-mlx-core = "^0.1.0"
-zeta-mlx-inference = "^0.1.0"
+zeta-mlx-core = "^0.3.1"
+zeta-mlx-inference = "^0.3.1"
 numpy = "^1.26"
 sentence-transformers = {version = "^3.0", optional = true}
 
